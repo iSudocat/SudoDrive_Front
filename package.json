@@ -9,9 +9,13 @@
     "start": "vue-cli-service serve --open"
   },
   "dependencies": {
+    "bootstrap": "^4.6.0",
+    "bootstrap-vue": "^2.21.2",
     "core-js": "^3.4.4",
     "mdbvue": "6.5.0",
-    "vue": "^2.6.11",
+    "vue": "^2.6.12",
+    "vue-loader": "^15.9.6",
+    "vue-router": "^3.5.1",
     "vue2-google-maps": "^0.10.7"
   },
   "devDependencies": {
@@ -22,7 +26,7 @@
     "eslint": "^5.16.0",
     "eslint-plugin-vue": "^6.1.2",
     "vue-cli-plugin-mdb": "^2.0.4",
-    "vue-template-compiler": "^2.6.11"
+    "vue-template-compiler": "^2.6.12"
   },
   "eslintConfig": {
     "root": true,
