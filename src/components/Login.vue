@@ -1,28 +1,36 @@
 <template>
 <div class="bg">
-  <mdb-row class="justify-content-center">
-    <mdb-col col="6">
-      <mdb-card style="margin-top: 5vh;">
-        <mdb-view hover>
-          <div style="display: flex; justify-content:center;">
-            <mdb-card-image src="/SudoDrive.png" alt="Card image cap"/>
-          </div>
-        </mdb-view>
-        <mdb-card-body>
-          <form>
-            <p class="h4 text-center mb-4">Sign in</p>
-            <div class="grey-text">
-              <mdb-input label="Your email" icon="envelope" type="email"/>
-              <mdb-input label="Your password" icon="lock" type="password"/>
+  <div class="front">
+    <mdb-row class="justify-content-center">
+      <mdb-col col="10" sm="8" md="6" lg="5" xl="4">
+        <mdb-card style="margin-top: 5vh;">
+          <mdb-view>
+            <div style="display: flex; justify-content:center; align-items: center; height: 100px;">
+              <mdb-card-image src="/SudoDrive.png" alt="Card image cap"/>
             </div>
-            <div class="text-center">
-              <mdb-btn>Login</mdb-btn>
-            </div>
-          </form>
-        </mdb-card-body>
-      </mdb-card>
-    </mdb-col>
-  </mdb-row>
+          </mdb-view>
+          <mdb-card-body>
+            <form>
+              <p class="h2 text-center mb-4">登录</p>
+              <div class="grey-text">
+                <mdb-row class="justify-content-center">
+                  <mdb-col col="10">
+                    <mdb-input label="用户名" icon="user-circle" type="text"/>
+                    <mdb-input label="密码" icon="lock" type="password"/>
+                  </mdb-col>
+                </mdb-row>
+
+              </div>
+              <div class="text-center">
+                <mdb-btn color="primary">Login</mdb-btn>
+              </div>
+            </form>
+          </mdb-card-body>
+        </mdb-card>
+      </mdb-col>
+    </mdb-row>
+  </div>
+
 </div>
 
 </template>
@@ -57,7 +65,26 @@ export default {
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center center;
-  height: 100vh;
+  height: 100%;
+  width: 100%;
+  margin: 0 0 0 0;
+  overflow: hidden hidden;
+  z-index:1;
+}
+.bg:after{
+  content: "";
+  width:100%;
+  height:100%;
+  position: absolute;
+  left:0;
+  top:0;
+  background: inherit;
+  filter: blur(2px);
+  z-index: 2;
+}
+.front{
+  position: relative;
+  z-index:11;
 }
 
 .form-horizontal{
