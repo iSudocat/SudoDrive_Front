@@ -3,26 +3,28 @@
   <div class="front">
     <mdb-row class="justify-content-center">
       <mdb-col col="10" sm="8" md="6" lg="5" xl="4">
-        <mdb-card style="margin-top: 5vh;">
+        <mdb-card style="margin-top: 10vh;">
           <mdb-view>
             <div style="display: flex; justify-content:center; align-items: center; height: 100px;">
               <mdb-card-image src="/SudoDrive.png" alt="Card image cap"/>
             </div>
           </mdb-view>
           <mdb-card-body>
-            <form>
+            <form @submit="onSubmit">
               <p class="h2 text-center mb-4">登录</p>
+              <mdb-alert color="danger" v-if="loginError" @closeAlert="loginError=false" dismiss>
+                <strong>{{loginErrorTips}}</strong>
+              </mdb-alert>
               <div class="grey-text">
                 <mdb-row class="justify-content-center">
                   <mdb-col col="10">
-                    <mdb-input label="用户名" icon="user-circle" type="text"/>
-                    <mdb-input label="密码" icon="lock" type="password"/>
+                    <mdb-input required label="用户名" icon="user-circle" type="text" v-model="loginForm.username"/>
+                    <mdb-input required label="密码" icon="lock" type="password" v-model="loginForm.password"/>
                   </mdb-col>
                 </mdb-row>
-
               </div>
               <div class="text-center">
-                <mdb-btn color="primary">Login</mdb-btn>
+                <mdb-btn color="primary" type="submit">Login</mdb-btn>
               </div>
             </form>
           </mdb-card-body>
@@ -37,7 +39,7 @@
 
 <script>
 /* eslint-disable */
-import { mdbContainer, mdbRow, mdbCol, mdbInput, mdbBtn, mdbCard, mdbCardImage, mdbCardBody, mdbCardTitle, mdbCardText, mdbView, mdbMask } from 'mdbvue';
+import { mdbContainer, mdbRow, mdbCol, mdbInput, mdbBtn, mdbCard, mdbCardImage, mdbCardBody, mdbCardTitle, mdbCardText, mdbView, mdbMask, mdbAlert } from 'mdbvue';
 export default {
   name: "Login",
   components: {
@@ -52,8 +54,58 @@ export default {
     mdbCardTitle,
     mdbCardText,
     mdbView,
-    mdbMask
+    mdbMask,
+    mdbAlert
   },
+  data() {
+    return {
+      loginForm:{
+        username: '',
+        password: ''
+      },
+      loginError: false,
+      loginErrorTips: '',
+    }
+  },
+  methods:{
+    onSubmit(evt) {
+      evt.preventDefault()
+      const _this = this
+      this.axios.defaults.withCredentials = true
+      this.axios.post('/api/login',this.loginForm)
+          .then((response) => {
+            console.log(response)
+
+            if(response.data.status === 0){
+
+              _this.$cookies.set('username', response.data.data.user.username)
+              _this.$cookies.set('token', response.data.data.token)
+              _this.$router.push('/dashboard')
+              //this.$router.go(0)
+
+            }else{
+              _this.loginError = true
+              _this.loginErrorTips = '用户名或密码错误！'
+            }
+
+          })
+          .catch((error) => {
+            console.log(error.response)
+            if(error.response.status === 400){
+              _this.loginError = true
+              _this.loginErrorTips = '用户名或密码错误！'
+            }else if(error.response.status === 500){
+              _this.loginError = true
+              _this.loginErrorTips = 'Internal Server Error'
+            }else{
+              _this.loginError = true
+              _this.loginErrorTips = '未知错误'
+            }
+
+          })
+
+    },
+  }
 }
 
 </script>

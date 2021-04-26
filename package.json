@@ -9,11 +9,14 @@
     "start": "vue-cli-service serve --open"
   },
   "dependencies": {
+    "axios": "^0.21.1",
     "bootstrap": "^4.6.0",
     "bootstrap-vue": "^2.21.2",
     "core-js": "^3.4.4",
     "mdbvue": "6.5.0",
     "vue": "^2.6.12",
+    "vue-axios": "^3.2.4",
+    "vue-cookies": "^1.7.4",
     "vue-loader": "^15.9.6",
     "vue-router": "^3.5.1",
     "vue2-google-maps": "^0.10.7"
