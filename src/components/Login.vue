@@ -80,7 +80,7 @@ export default {
 
               _this.$cookies.set('username', response.data.data.user.username)
               _this.$cookies.set('token', response.data.data.token)
-              _this.$router.push('/dashboard')
+              _this.$router.push('/files')
               //this.$router.go(0)
 
             }else{

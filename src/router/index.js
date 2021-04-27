@@ -6,58 +6,11 @@ import Tables from '../components/Tables'
 import BadGateway from '../components/BadGateway'
 import Content from "../layout/Content";
 import Login from "../components/Login.vue"
+import GroupManage from "../components/GroupManage";
+import Files from "../components/Files";
+import UserManage from "../components/UserManage";
 
 Vue.use(Router);
-
-/*
-export default new Router({
-  mode: 'history',
-  routes: [
-    {
-      path: '/dashboard',
-      name: 'Dashboard',
-      component: Dashboard,
-      props: { page: 1 },
-      alias: '/'
-    },
-    {
-      path: '/profile',
-      name: 'Profile',
-      props: { page: 2 },
-      component: Profile
-    },
-    {
-      path: '/tables',
-      name: 'Tables',
-      props: { page: 3 },
-      component: Tables
-    },
-    {
-      path: '/maps',
-      name: 'Maps',
-      props: { page: 4 },
-      component: Maps
-    },
-    {
-      path: '/404',
-      name: 'BadGateway',
-      props: { page: 5 },
-      component: BadGateway
-    },
-    {
-      path: '*',
-      props: { page: 5 },
-      redirect: '/404'
-    },
-    {
-      path: '/login',
-      name: 'Login',
-      component: () => import('../components/Login.vue')
-    },
-  ]
-})
-*/
-
 
 const router = new Router({
   mode: 'history',
@@ -67,6 +20,24 @@ const router = new Router({
       redirect: 'login',
       component: Content,
       children: [
+        {
+          path: '/groupManage',
+          name: 'groupManage',
+          component: GroupManage,
+          props: { page: 'groupManage' }
+        },
+        {
+          path: '/files',
+          name: 'files',
+          component: Files,
+          props: { page: 'files' }
+        },
+        {
+          path: '/UserManage',
+          name: 'userManage',
+          component: UserManage,
+          props: { page: 'userManage' }
+        },
         {
           path: '/dashboard',
           name: 'Dashboard',
