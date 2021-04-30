@@ -78,9 +78,9 @@ export default {
 
             if(response.data.status === 0){
 
-              _this.$cookies.set('username', response.data.data.user.username)
-              _this.$cookies.set('token', response.data.data.token)
-              _this.$router.push('/files')
+              _this.$cookies.set('username', response.data.data.user.username,"1d")
+              _this.$cookies.set('token', response.data.data.token,"1d")
+              _this.$router.push({name: 'files', query: {folder: '/users/' + response.data.data.user.username}})
               //this.$router.go(0)
 
             }else{

@@ -11,8 +11,11 @@
   "dependencies": {
     "axios": "^0.21.1",
     "bootstrap": "^4.6.0",
+    "bootstrap-table": "^1.18.3",
     "bootstrap-vue": "^2.21.2",
     "core-js": "^3.4.4",
+    "cos-js-sdk-v5": "^1.2.9",
+    "jquery": "^3.6.0",
     "mdbvue": "6.5.0",
     "vue": "^2.6.12",
     "vue-axios": "^3.2.4",

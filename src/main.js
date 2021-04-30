@@ -19,6 +19,12 @@ import '@fortawesome/fontawesome-free/css/all.min.css'
 import 'bootstrap-css-only/css/bootstrap.min.css'
 import 'mdbvue/lib/css/mdb.min.css'
 
+import jQuery from 'jquery'
+window.jQuery = jQuery
+
+import 'bootstrap-table/dist/bootstrap-table.min.css'
+import 'bootstrap-table/dist/bootstrap-table.min.js'
+import 'bootstrap-table/dist/locale/bootstrap-table-zh-CN.min.js'
 
 Vue.config.productionTip = false
 

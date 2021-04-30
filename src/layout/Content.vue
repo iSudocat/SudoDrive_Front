@@ -1,5 +1,5 @@
 <template>
-  <div >
+  <div>
     <!--Navbar-->
     <mdb-navbar class="flexible-navbar white" light position="top" scrolling>
       <mdb-navbar-brand href="" target="_blank"
@@ -30,7 +30,6 @@
     </mdb-navbar>
     <!--/.Navbar-->
 
-    <main>
       <div class="mt-5 p-5">
         <router-view></router-view>
       </div>
@@ -40,7 +39,6 @@
           <a href="https://github.com/iSudocat/SudoDrive"> SudoDrive </a>
         </p>
       </ftr>
-    </main>
   </div>
 </template>
 
@@ -98,7 +96,7 @@ export default {
     logoutClick: function () {
       console.log('注销')
       this.$cookies.remove('username')
-      this.$cookies.remove('access_token')
+      this.$cookies.remove('token')
       this.$router.push('/login')
     }
   },

@@ -1,8 +1,5 @@
 import Vue from 'vue';
 import Router from 'vue-router';
-import Dashboard from '../components/Dashboard'
-import Profile from '../components/Profile'
-import Tables from '../components/Tables'
 import BadGateway from '../components/BadGateway'
 import Content from "../layout/Content";
 import Login from "../components/Login.vue"
@@ -37,24 +34,6 @@ const router = new Router({
           name: 'userManage',
           component: UserManage,
           props: { page: 'userManage' }
-        },
-        {
-          path: '/dashboard',
-          name: 'Dashboard',
-          component: Dashboard,
-          props: { page: 1 }
-        },
-        {
-          path: '/profile',
-          name: 'Profile',
-          props: { page: 2 },
-          component: Profile
-        },
-        {
-          path: '/tables',
-          name: 'Tables',
-          props: { page: 3 },
-          component: Tables
         },
       ]
     },
