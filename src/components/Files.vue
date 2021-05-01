@@ -1,33 +1,44 @@
 <template>
-  <section id="tables">
-    <mdb-row class="justify-content-md-center">
-      <mdb-col md="10">
-        <table style="margin-top: 20px" id="table" data-pagination="false" data-show-footer="false">
+  <section id="files">
 
+    <mdb-row class="justify-content-md-center">
+      <mdb-col col="2">
+        <div>
+          <b-button variant="primary" size="sm" v-b-toggle.sidebar-right>上传</b-button>
+          <b-sidebar id="sidebar-right" title="上传任务" right width="500px" header-class="background-color: grey lighten-5">
+            <div class="px-3 py-2 grey lighten-5" style="height: 100%; ">
+              <file-upload></file-upload>
+            </div>
+          </b-sidebar>
+        </div>
+      </mdb-col>
+    </mdb-row>
+    <mdb-row class="justify-content-md-center">
+      <mdb-col col="10">
+        <table style="margin-top: 20px" id="table" data-pagination="false" data-show-footer="false">
         </table>
       </mdb-col>
     </mdb-row>
+
   </section>
+
 </template>
 
 <script>
 /* eslint-disable */
 import $ from 'jquery'
 import CosAuth from '../js/cos-auth.js'
-import {mdbRow, mdbCol, mdbCard, mdbView, mdbCardBody, mdbTbl, mdbScrollbar, mdbBtn, mdbIcon} from 'mdbvue'
+import {mdbRow, mdbCol} from 'mdbvue'
+import FileUpload from "./FileUpload";
 
 export default {
   name: "Files",
   components: {
+    FileUpload,
     mdbRow,
     mdbCol,
-    mdbCard,
-    mdbView,
-    mdbCardBody,
-    mdbTbl,
-    mdbScrollbar,
-    mdbBtn,
-    mdbIcon
+
+
   },
   data() {
     return {
@@ -214,4 +225,10 @@ export default {
 
 <style scoped>
 
+.sbh{
+  background-color: white !important;
+}
+.sbc{
+  background-color:  !important;
+}
 </style>

@@ -5,20 +5,10 @@
 </template>
 
 <script>
-
-
 export default {
   name: "AdminTemplate",
   components: {
-
-  },
-  data() {
-
-  },
-  beforeMount() {
-
-  },
-
+  }
 };
 </script>
 
