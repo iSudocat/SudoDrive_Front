@@ -21,6 +21,7 @@
 
 // var COS = require('cos-js-sdk-v5');
 import SparkMD5 from "spark-md5";
+import {uploadAxios} from "@/js/NETapi";
 
 export default {
   /* eslint-disable */
@@ -35,12 +36,22 @@ export default {
   methods: {
     fileInputChange: function (file) {
       console.log(file)
+      const that = this
       let fileReader = new FileReader()
       fileReader.readAsBinaryString(file)
       fileReader.onload = function(str) {
         let spark = new SparkMD5()
         // console.log(str.currentTarget.result)
         spark.appendBinary(str.currentTarget.result)
+        let md5 = spark.end()
+        uploadAxios({
+          type: file.type,
+          path: file.path,
+          size: file.size,
+          md5: md5
+        }, that.$cookies.get('token')).then(res => {
+          console.log(res)
+        })
         console.log(spark.end())
       }
       // uploadAxios({
