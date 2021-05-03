@@ -8,7 +8,7 @@
       >
       <mdb-navbar-toggler>
         <mdb-navbar-nav left>
-          <mdb-nav-item waves-fixed to="/files" @click.native="activeItem = 'files'"
+          <mdb-nav-item waves-fixed :href="getFilePath" @click.native="activeItem = 'files'"
                         v-bind:class="{active: activeItem === 'files'}">文件
           </mdb-nav-item>
           <mdb-nav-item waves-fixed to="/groupManage" @click.native="activeItem = 'groupManage'"
@@ -86,11 +86,18 @@ export default {
   computed: {
     getUsername: function () {
       if (this.$cookies.get('username') !== null) {
-        return '欢迎您，' +this.$cookies.get('username')
+        return '欢迎您，' + this.$cookies.get('username')
       } else {
         return ''
       }
-    }
+    },
+    getFilePath: function () {
+      if (this.$cookies.get('username') !== null) {
+        return '/files?folder=/users/' + this.$cookies.get('username')
+      } else {
+        return '/login'
+      }
+    },
   },
   methods: {
     logoutClick: function () {
