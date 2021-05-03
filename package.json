@@ -17,6 +17,7 @@
     "cos-js-sdk-v5": "^1.2.9",
     "jquery": "^3.6.0",
     "mdbvue": "6.5.0",
+    "spark-md5": "^3.0.1",
     "vue": "^2.6.12",
     "vue-axios": "^3.2.4",
     "vue-cookies": "^1.7.4",
