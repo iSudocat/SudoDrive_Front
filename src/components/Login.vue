@@ -77,11 +77,14 @@ export default {
             console.log(response)
 
             if(response.data.status === 0){
-
-              _this.$cookies.set('username', response.data.data.user.username,"1d")
-              _this.$cookies.set('token', response.data.data.token,"1d")
-              _this.$router.push({name: 'files', query: {folder: '/users/' + response.data.data.user.username}})
-              //this.$router.go(0)
+              if(response.data.data.user.status === 1){
+                _this.loginError = true
+                _this.loginErrorTips = '账号已被封禁！'
+              }else{
+                _this.$cookies.set('username', response.data.data.user.username,"1d")
+                _this.$cookies.set('token', response.data.data.token,"1d")
+                _this.$router.push({name: 'files', query: {folder: '/users/' + response.data.data.user.username}})
+              }
 
             }else{
               _this.loginError = true

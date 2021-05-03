@@ -5,7 +5,8 @@
       <mdb-col col="2">
         <div>
           <b-button variant="primary" size="sm" v-b-toggle.sidebar-right>上传</b-button>
-          <b-sidebar id="sidebar-right" title="上传任务" right width="500px" header-class="background-color: grey lighten-5">
+          <b-sidebar id="sidebar-right" title="上传任务" right width="500px"
+                     header-class="background-color: grey lighten-5">
             <div class="px-3 py-2 grey lighten-5" style="height: 100%; ">
               <file-upload></file-upload>
             </div>
@@ -59,7 +60,7 @@ export default {
   },
   mounted() {
     const _this = this
-    const $table = $('#table')
+
     this.axios.get('/api/storage/file?offset=0&amount=20&folder=' + this.folder, {headers: {Authorization: "Bearer " + this.token}})
         .then((response) => {
           console.log(response.data)
@@ -77,24 +78,24 @@ export default {
       const _this = this
       let fileData = []
       // 数据预处理
-      response.files.forEach((element, index) => {
-        const date = new Date(element.updatedAt);
+      response.files.forEach((element) => {
+
         fileData.push({
           id: element.id,
           name: element.name,
           size: _this.convertFileSize(element.size),
           updatedAt: new Date(element.updatedAt).toLocaleString(undefined, {hour12: false}),
           type: element.type,
+          path: element.path
         })
       })
 
       let operateEvents = {
         'click .download': function (e, value, row, index) {
-          _this.downloadCosFile(row.id, row.name)
+          _this.downloadCosFile(row.id)
         },
         'click .delete': function (e, value, row, index) {
-
-
+          _this.deleteFile([row.path])
         },
       }
 
@@ -144,7 +145,7 @@ export default {
       if (value === 0)
         return '-';
       const unitArr = ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
-      let index = 0;
+      let index;
       const srcSize = parseFloat(value);
       index = Math.floor(Math.log(srcSize) / Math.log(1024));
       let size = srcSize / Math.pow(1024, index);
@@ -171,7 +172,7 @@ export default {
         ].join('')
       }
     },
-    operateFormatter: function (value, row, index) {
+    operateFormatter: function () {
       return [
         '<a class="download" href="javascript:void(0)" title="下载">',
         '<i class="fas fa-download"></i>',
@@ -197,8 +198,10 @@ export default {
       document.body.appendChild(link); //a标签插至页面中
       link.click(); //强制触发a标签事件
     },
-    downloadCosFile: async function (fileID, fileName) {
-      let response = await this.axios.get('/api/storage/file?download=true&id=' + fileID, {headers: {Authorization: "Bearer " + this.$cookies.get('token')}})
+    downloadCosFile: async function (fileID) {
+      let response = await this.axios.get('/api/storage/file?download=true&id=' + fileID, {
+        headers: {Authorization: "Bearer " + this.$cookies.get('token')}
+      })
       //console.log(response.data)
       let auth = CosAuth(
           response.data.data.token.credentials.tmpSecretId,
@@ -218,6 +221,13 @@ export default {
       //console.log(link)
       this.fileDownloadCreate(link)
     },
+    deleteFile: async function (filePath) {
+      let response = await this.axios.delete('/api/storage/file', {
+        data: {path: filePath},
+        headers: {Authorization: "Bearer " + this.$cookies.get('token')}
+      })
+      console.log(response.data)
+    }
 
   }
 }
@@ -225,10 +235,5 @@ export default {
 
 <style scoped>
 
-.sbh{
-  background-color: white !important;
-}
-.sbc{
-  background-color:  !important;
-}
+
 </style>
