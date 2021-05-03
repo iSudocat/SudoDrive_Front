@@ -13,7 +13,26 @@
       >
 
       </b-form-file>
+
     </b-form-group>
+    <mdb-tbl>
+      <mdb-tbl-head>
+        <tr>
+          <th>文件名</th>
+          <th>进度</th>
+          <th>操作</th>
+        </tr>
+      </mdb-tbl-head>
+      <mdb-tbl-body>
+        <tr v-for="uploadFile in uploadfiles" :key="uploadFile.id">
+          <td>{{uploadFile.name}}</td>
+          <td>
+            <b-progress style="margin-left: -30px" :value="uploadFile.progress" max="100" precision="2" show-progress animated></b-progress>
+          </td>
+          <td>@mdo</td>
+        </tr>
+      </mdb-tbl-body>
+    </mdb-tbl>
   </div>
 </template>
 
@@ -23,16 +42,28 @@
 var COS = require('cos-js-sdk-v5');
 
 import SparkMD5 from "spark-md5";
-import {uploadAxios} from "@/js/NETapi";
+import {uploadAxios, confirmAxios} from "@/js/NETapi";
+import { mdbTbl, mdbTblHead, mdbTblBody } from 'mdbvue';
 
 export default {
   /* eslint-disable */
   name: "FileUpload",
-  components: {},
+  components: {
+    mdbTbl,
+    mdbTblHead,
+    mdbTblBody
+  },
   data() {
     return {
       file1: null,
-
+      uploadfiles: [{
+        id: 1,
+        name: 'test1',
+        progress: 50,
+        status: 'running'
+      }],
+      progressValue: 50,
+      progressMax: 100
     }
   },
   methods: {
@@ -41,6 +72,8 @@ export default {
       const that = this
       let fileReader = new FileReader()
       fileReader.readAsBinaryString(file)
+
+      // 老长的回调
       fileReader.onload = function(str) {
         let spark = new SparkMD5()
         // console.log(str.currentTarget.result)
@@ -53,6 +86,7 @@ export default {
           size: file.size,
           md5: md5
         }
+        // const uploadModel = this.getUploadModel(file)
         uploadAxios(uploadModel, that.$cookies.get('token')).then(res => {
           console.log(uploadModel)
           console.log(res)
@@ -65,19 +99,7 @@ export default {
             alert(".NET请求错误")
             return
           }
-          // const authData = res.data.data
-          var cos = new COS({
-            getAuthorization: function (options, callback) {
-              callback({
-                TmpSecretId: res.data.data.token.credentials.tmpSecretId,
-                TmpSecretKey: res.data.data.token.credentials.tmpSecretKey,
-                XCosSecurityToken: res.data.data.token.credentials.token,
-                // 建议返回服务器时间作为签名的开始时间，避免用户浏览器本地时间偏差过大导致签名错误
-                StartTime: res.data.data.token.startTime, // 时间戳，单位秒，如：1580000000
-                ExpiredTime: res.data.data.token.expiredTime, // 时间戳，单位秒，如：1580000900
-              })
-            }
-          })
+          var cos = that.getCosByRes(res)
           // console.log(s)
           cos.putObject({
             Bucket: res.data.data.tencentCos.bucket, /* 必须 */
@@ -89,7 +111,9 @@ export default {
               console.log(JSON.stringify(progressData));
             }
           }, function(err, data) {
-            console.log(err || data);
+            confirmAxios(res.data.data.file.id, res.data.data.file.guid, that.$cookies.get('token')).then(confirm => {
+              console.log(confirm)
+            })
           })
           // console.log(cosAuth)
         })
@@ -97,6 +121,21 @@ export default {
       //将当次文件添加到队列后清除file1，以便用户选择新的文件
       //this.$refs['file-input'].reset()
     },
+    getCosByRes: function(res) {
+      var cos = new COS({
+        getAuthorization: function (options, callback) {
+          callback({
+            TmpSecretId: res.data.data.token.credentials.tmpSecretId,
+            TmpSecretKey: res.data.data.token.credentials.tmpSecretKey,
+            XCosSecurityToken: res.data.data.token.credentials.token,
+            // 建议返回服务器时间作为签名的开始时间，避免用户浏览器本地时间偏差过大导致签名错误
+            StartTime: res.data.data.token.startTime, // 时间戳，单位秒，如：1580000000
+            ExpiredTime: res.data.data.token.expiredTime, // 时间戳，单位秒，如：1580000900
+          })
+        }
+      })
+      return cos
+    }
   }
 }
 </script>
