@@ -29,7 +29,10 @@
           <td>
             <b-progress style="margin-left: -30px" :value="uploadFile.progress" max="100" precision="2" show-progress animated></b-progress>
           </td>
-          <td>@mdo</td>
+          <td>
+            <i class="fas fa-pause"></i>
+            <i class="fas fa-stop" style="margin-left: 5px"></i>
+          </td>
         </tr>
       </mdb-tbl-body>
     </mdb-tbl>
@@ -51,7 +54,7 @@ export default {
   components: {
     mdbTbl,
     mdbTblHead,
-    mdbTblBody
+    mdbTblBody,
   },
   data() {
     return {
