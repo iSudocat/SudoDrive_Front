@@ -1,5 +1,5 @@
 <template>
-  <div id="files" class="animated fadeIn" >
+  <div id="files">
 
     <mdb-row class="justify-content-md-center">
       <mdb-col col="2">
@@ -14,7 +14,7 @@
         </div>
       </mdb-col>
     </mdb-row>
-    <mdb-row class="justify-content-md-center">
+    <mdb-row class="justify-content-md-center animated fadeIn">
       <mdb-col col="10">
         <table style="margin-top: 20px" id="table" data-pagination="false" data-show-footer="false">
         </table>
@@ -90,7 +90,7 @@ export default {
           name: element.name,
           size: _this.convertFileSize(element.size),
           updatedAt: new Date(element.updatedAt).toLocaleString(undefined, {hour12: false}),
-          type: element.type,
+          type: element.type !== 'text/directory' ? element.type : '文件夹',
           path: element.path
         })
       })
@@ -107,6 +107,8 @@ export default {
       const $table = $('#table')
       $table.bootstrapTable({
         locale: 'zh-CN',
+        sortName: "type",
+        sortOrder: "",
         columns: [
           {
             field: 'state',
@@ -121,6 +123,13 @@ export default {
             sortable: true,
             align: 'left',
             formatter: _this.fileNameFormatter
+          },
+          {
+            field: 'type',
+            title: '类型',
+            sortable: true,
+            align: 'left',
+            visible: false
           },
           {
             field: 'size',
@@ -158,7 +167,7 @@ export default {
       return size + unitArr[index];
     },
     fileNameFormatter: function (value, row, index) {
-      if (row.type === 'text/directory') {
+      if (row.type === '文件夹') {
         const folder = this.folder + '/' + row.name
         return [
           '<a class="folder" href="/files?folder=',

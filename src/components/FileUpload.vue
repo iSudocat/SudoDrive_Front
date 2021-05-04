@@ -9,9 +9,7 @@
           placeholder="点击选择或拖动文件至此处"
           browse-text="添加"
           @input="fileInputChange"
-
       >
-
       </b-form-file>
 
     </b-form-group>
@@ -31,12 +29,12 @@
         </button>
       </div>
     </div>
-    <mdb-tbl>
+    <mdb-tbl responsive autoWidth>
       <mdb-tbl-head>
         <tr>
-          <th>文件名</th>
-          <th>进度</th>
-          <th>操作</th>
+          <th >文件名</th>
+          <th style="width:120px">进度</th>
+          <th style="width:100px">操作</th>
         </tr>
       </mdb-tbl-head>
       <mdb-tbl-body>
@@ -55,10 +53,10 @@
                @click="pauseTask(task)">
             </i>
             <i class="fas fa-stop"
-               v-if="task.file.status==='running'||task.file.status==='pause'" style="margin-left: 5px"
+               v-if="task.file.status==='running'||task.file.status==='pause'" style="margin-left: 10px"
                @click="stopTask(task)">
             </i>
-            <span v-if="task.file.status==='success'">成功上传</span>
+            <span v-if="task.file.status==='success'">上传成功</span>
             <span v-if="task.file.status==='stop'">已取消</span>
             <span v-if="task.file.status==='error'">上传出错</span>
           </td>
