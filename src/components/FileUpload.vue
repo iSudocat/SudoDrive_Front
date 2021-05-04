@@ -150,7 +150,7 @@ export default {
             cos: cos
           }
           that.tasks.unshift(task)
-          cos.putObject({
+          cos.sliceUploadFile({
             Bucket: res.data.data.tencentCos.bucket, /* 必须 */
             Region: res.data.data.tencentCos.region,     /* 存储桶所在地域，必须字段 */
             Key: res.data.data.file.storageName,              /* 必须 */
@@ -158,7 +158,8 @@ export default {
             Body: uploadFile, // 上传文件对象
             // 进度回调
             onProgress: function(progressData) {
-              console.log(`loaded:${progressData.loaded},total:${progressData.total}`)
+              // console.log(`loaded:${progressData.loaded},total:${progressData.total}`)
+              if (progressData.loaded === 0) return
               task.file.progress = progressData.loaded / progressData.total * 100
             },
             // 创建任务成功的回调 取得TaskId用于任务的控制： 暂停 停止 重新启动
