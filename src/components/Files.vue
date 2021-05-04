@@ -1,10 +1,15 @@
 <template>
   <div id="files">
 
-    <mdb-row class="justify-content-md-center">
-      <mdb-col col="2">
+    <mdb-row class="justify-content-center">
+      <mdb-col col="10">
         <div>
-          <b-button variant="primary" size="sm" v-b-toggle.sidebar-right>上传</b-button>
+          <mdb-btn-group>
+            <mdb-btn color="primary" size="md" v-b-toggle.sidebar-right>上传</mdb-btn>
+            <mdb-btn style="margin-left: 5px" color="primary" size="md" v-on:click="batchDownload">批量下载</mdb-btn>
+            <mdb-btn style="margin-left: 5px" color="primary" size="md" v-on:click="batchDelete">批量删除</mdb-btn>
+
+          </mdb-btn-group>
           <b-sidebar id="sidebar-right" title="上传任务" right width="500px"
                      header-class="background-color: grey lighten-5">
             <div class="px-3 py-2 grey lighten-5" style="height: 100%; ">
@@ -13,6 +18,7 @@
           </b-sidebar>
         </div>
       </mdb-col>
+
     </mdb-row>
     <mdb-row class="justify-content-md-center animated fadeIn">
       <mdb-col col="10">
@@ -29,7 +35,7 @@
 /* eslint-disable */
 import $ from 'jquery'
 import CosAuth from '../js/cos-auth.js'
-import {mdbRow, mdbCol} from 'mdbvue'
+import {mdbRow, mdbCol, mdbBtn, mdbBtnGroup} from 'mdbvue'
 import FileUpload from "./FileUpload";
 
 export default {
@@ -38,12 +44,14 @@ export default {
     FileUpload,
     mdbRow,
     mdbCol,
-
+    mdbBtn,
+    mdbBtnGroup
 
   },
   data() {
     return {
-      selections: [],
+      idSelections: [],
+      pathSelections: [],
       amount: 0,  //文件总数，从get中取得
       allFileData: [],  //所有文件data，amount超过1000时使用
       username: '',
@@ -62,7 +70,7 @@ export default {
   async mounted() {
     const _this = this
     let response = await this.axios.get('/api/storage/file?offset=0&amount=1000&folder=' + this.folder, {headers: {Authorization: "Bearer " + this.token}})
-    console.log(response.data)
+    //console.log(response.data)
     this.amount = response.data.data.amount
 
     if(this.amount <= 1000){
@@ -105,6 +113,8 @@ export default {
       }
 
       const $table = $('#table')
+      const $remove = $('#remove')
+
       $table.bootstrapTable({
         locale: 'zh-CN',
         sortName: "type",
@@ -129,19 +139,21 @@ export default {
             title: '类型',
             sortable: true,
             align: 'left',
-            visible: false
+            visible: true
           },
           {
             field: 'size',
             title: '大小',
             sortable: false,
-            align: 'left'
+            align: 'left',
+            width: 100
           },
           {
             field: 'updatedAt',
             title: '修改日期',
             sortable: false,
-            align: 'left'
+            align: 'left',
+            width: 200
           },
           {
             field: 'operate',
@@ -154,6 +166,26 @@ export default {
           }],
         data: fileData
       })
+
+      function getIdSelections() {
+        return $.map($table.bootstrapTable('getSelections'), function (row) {
+          return row.id
+        })
+      }
+      function getPathSelections() {
+        return $.map($table.bootstrapTable('getSelections'), function (row) {
+          return row.path
+        })
+      }
+
+      $table.on('check.bs.table uncheck.bs.table ' + 'check-all.bs.table uncheck-all.bs.table',
+          function () {
+            $remove.prop('disabled', !$table.bootstrapTable('getSelections').length)
+            _this.idSelections = getIdSelections()
+            _this.pathSelections = getPathSelections()
+            //console.log(_this.idSelections)
+            //console.log(_this.pathSelections)
+          })
     },
     convertFileSize: function (value) {
       if (value === 0)
@@ -191,7 +223,7 @@ export default {
         '<a class="download" href="javascript:void(0)" title="下载">',
         '<i class="fas fa-download"></i>',
         '</a>',
-        '<a class="delete" style="margin-left:10px" href="javascript:void(0)" title="删除">',
+        '<a class="delete" style="margin-left:20px" href="javascript:void(0)" title="删除">',
         '<i class="fas fa-trash-alt"></i>',
         '</a>'
       ].join('')
@@ -216,7 +248,6 @@ export default {
       let response = await this.axios.get('/api/storage/file?download=true&id=' + fileID, {
         headers: {Authorization: "Bearer " + this.$cookies.get('token')}
       })
-      //console.log(response.data)
       let auth = CosAuth(
           response.data.data.token.credentials.tmpSecretId,
           response.data.data.token.credentials.tmpSecretKey,
@@ -240,9 +271,21 @@ export default {
         data: {path: filePath},
         headers: {Authorization: "Bearer " + this.$cookies.get('token')}
       })
-      console.log(response.data)
+    },
+    batchDownload: function (){
+      const _this = this
+      let i = 0
+      this.idSelections.forEach((element) => {
+        setTimeout(function() {
+          _this.downloadCosFile(element)
+        }, i * 500)  // 不延时下载可能被吞
+        i++
+      })
+    },
+    batchDelete: function (){
+      this.deleteFile(this.pathSelections)
+      this.$router.go(0)
     }
-
   }
 }
 </script>
