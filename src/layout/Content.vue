@@ -120,8 +120,9 @@ export default {
 </style>
 
 <style scoped>
-main {
-  background-color: #ededee;
+.main {
+
+  height: 100%;
 }
 
 .flexible-content {

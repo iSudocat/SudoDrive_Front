@@ -1,5 +1,5 @@
 <template>
-  <section id="files">
+  <div id="files" class="animated fadeIn" >
 
     <mdb-row class="justify-content-md-center">
       <mdb-col col="2">
@@ -21,7 +21,7 @@
       </mdb-col>
     </mdb-row>
 
-  </section>
+  </div>
 
 </template>
 
@@ -45,6 +45,7 @@ export default {
     return {
       selections: [],
       amount: 0,  //文件总数，从get中取得
+      allFileData: [],  //所有文件data，amount超过1000时使用
       username: '',
       token: '',
       folder: ''
@@ -58,27 +59,31 @@ export default {
       this.$router.push('/login')
     }
   },
-  mounted() {
+  async mounted() {
     const _this = this
+    let response = await this.axios.get('/api/storage/file?offset=0&amount=1000&folder=' + this.folder, {headers: {Authorization: "Bearer " + this.token}})
+    console.log(response.data)
+    this.amount = response.data.data.amount
 
-    this.axios.get('/api/storage/file?offset=0&amount=20&folder=' + this.folder, {headers: {Authorization: "Bearer " + this.token}})
-        .then((response) => {
-          console.log(response.data)
-          _this.amount = response.data.data.amount
-          _this.initTable(response.data.data)
-
-        })
-        .catch((error) => {
-          console.log(error)
-        })
+    if(this.amount <= 1000){
+      this.initTable(response.data.data)
+    }else{
+      let offset = 1000
+      this.allFileData.push(response.data.data)
+      while(offset <= this.amount){
+        let response = await this.axios.get('/api/storage/file?offset=' + offset + '&amount=1000&folder=' + this.folder, {headers: {Authorization: "Bearer " + this.token}})
+        this.allFileData.push(response.data.data)
+        offset = offset + 1000
+      }
+    }
 
   },
   methods: {
-    initTable: function (response) {
+    initTable: function (data) {
       const _this = this
       let fileData = []
       // 数据预处理
-      response.files.forEach((element) => {
+      data.files.forEach((element) => {
 
         fileData.push({
           id: element.id,
@@ -113,7 +118,7 @@ export default {
           {
             field: 'name',
             title: '文件名',
-            sortable: false,
+            sortable: true,
             align: 'left',
             formatter: _this.fileNameFormatter
           },
@@ -156,7 +161,7 @@ export default {
       if (row.type === 'text/directory') {
         const folder = this.folder + '/' + row.name
         return [
-          '<a href="/files?folder=',
+          '<a class="folder" href="/files?folder=',
           folder,
           '" style="color:#3F729B">',
           '<i style="margin-right:5px" class="fas fa-folder"></i>',
@@ -165,7 +170,7 @@ export default {
         ].join('')
       } else {
         return [
-          '<div>',
+          '<div class="file">',
           '<i style="margin-right:5px" class="fas fa-file-alt"></i>',
           row.name,
           '</div>'

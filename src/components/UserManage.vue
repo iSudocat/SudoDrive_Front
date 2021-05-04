@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="animated fadeIn">
     <mdb-row class="justify-content-md-center">
       <mdb-col col="10">
         <table style="margin-top: 20px" id="table" data-pagination="false" data-show-footer="false">
@@ -40,7 +40,7 @@ export default {
   mounted() {
     const _this = this
 
-    this.axios.get('/api/user/', {headers: {Authorization: "Bearer " + this.token}})
+    this.axios.get('/api/user', {headers: {Authorization: "Bearer " + this.token}})
         .then((response) => {
           console.log(response.data)
           _this.amount = response.data.data.amount
@@ -133,7 +133,7 @@ export default {
       }else if (row.status === 0){
         return [
           '<a class="ban" href="javascript:void(0)" title="封禁用户">',
-          '<i class="fas fa-user-times"></i>',
+          '<i class="fas fa-user-slash"></i>',
           '</a>',
         ].join('')
       }else{
