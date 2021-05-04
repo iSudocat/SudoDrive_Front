@@ -60,6 +60,7 @@
             </i>
             <span v-if="task.file.status==='success'">成功上传</span>
             <span v-if="task.file.status==='stop'">已取消</span>
+            <span v-if="task.file.status==='error'">上传出错</span>
           </td>
         </tr>
       </mdb-tbl-body>
@@ -157,28 +158,29 @@ export default {
             Body: uploadFile, // 上传文件对象
             // 进度回调
             onProgress: function(progressData) {
+              console.log(`loaded:${progressData.loaded},total:${progressData.total}`)
               task.file.progress = progressData.loaded / progressData.total * 100
             },
             // 创建任务成功的回调 取得TaskId用于任务的控制： 暂停 停止 重新启动
             onTaskReady: function (taskId) {
               task.taskId = taskId
-              // console.log("taskId")
-              // console.log(task.id)
-              // console.log(task.taskId)
-            }
+            },
           }, function(err, data) {
-            task.file.progress = 100
-            // TODO 处理error
-            confirmAxios(res.data.data.file.id, res.data.data.file.guid, that.$cookies.get('token')).then(confirm => {
-              // console.log(confirm)
-              task.file.status = 'success'
-            })
+            if (err == null) {
+              task.file.progress = 100
+              // TODO 处理error
+              confirmAxios(res.data.data.file.id, res.data.data.file.guid, that.$cookies.get('token')).then(confirm => {
+                // console.log(confirm)
+                task.file.status = 'success'
+              })
+            }
+            else {
+              task.file.status = 'error'
+            }
           })
           // console.log(cosAuth)
         })
       }
-      //将当次文件添加到队列后清除file1，以便用户选择新的文件
-      //this.$refs['file-input'].reset()
     },
     // 从net的响应中构造cos
     getCosByRes: function(res) {
@@ -200,6 +202,7 @@ export default {
     pauseTask: function (task) {
       task.cos.pauseTask(task.taskId)
       task.file.status = 'pause'
+      console.log('pause:'+task.file.name)
     },
     // 继续某个任务
     continueTask: function (task) {
