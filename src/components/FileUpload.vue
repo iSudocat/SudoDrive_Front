@@ -85,6 +85,9 @@ export default {
     mdbTblHead,
     mdbTblBody,
   },
+  props: {
+    path: '/users/admin/'
+  },
   data() {
     return {
       file1: null,
@@ -118,8 +121,7 @@ export default {
         let md5 = spark.end()
         let uploadModel = {
           type: uploadFile.type,
-          //TODO 从父组件取得path
-          path: '/users/admin/'+ uploadFile.name,
+          path: that.path + uploadFile.name,
           size: uploadFile.size,
           md5: md5
         }
@@ -169,7 +171,6 @@ export default {
           }, function(err, data) {
             if (err == null) {
               task.file.progress = 100
-              // TODO 处理error
               confirmAxios(res.data.data.file.id, res.data.data.file.guid, that.$cookies.get('token')).then(confirm => {
                 // console.log(confirm)
                 task.file.status = 'success'
