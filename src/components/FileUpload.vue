@@ -24,14 +24,24 @@
         </tr>
       </mdb-tbl-head>
       <mdb-tbl-body>
-        <tr v-for="uploadFile in uploadfiles" :key="uploadFile.id">
-          <td>{{uploadFile.name}}</td>
+        <tr v-for="task in tasks" :key="task.id">
+          <td>{{task.file.name}}</td>
           <td>
-            <b-progress style="margin-left: -30px" :value="uploadFile.progress" max="100" precision="2" show-progress animated></b-progress>
+            <b-progress style="margin-left: -30px" :value="task.file.progress" max="100" precision="2" show-progress animated></b-progress>
           </td>
           <td>
-            <i class="fas fa-pause"></i>
-            <i class="fas fa-stop" style="margin-left: 5px"></i>
+            <i class="fas fa-play"
+               v-if="task.file.status==='pause'||task.file.status==='stop'"
+               @click="task.file.status='running'">
+            </i>
+            <i class="fas fa-pause"
+               v-if="task.file.status==='running'"
+               @click="task.file.status='pause'">
+            </i>
+            <i class="fas fa-stop"
+               v-if="task.file.status==='running'||task.file.status==='pause'" style="margin-left: 5px"
+               @click="task.file.status='stop'">
+            </i>
           </td>
         </tr>
       </mdb-tbl-body>
@@ -59,11 +69,14 @@ export default {
   data() {
     return {
       file1: null,
-      uploadfiles: [{
-        id: 1,
-        name: 'test1',
-        progress: 50,
-        status: 'running'
+      tasks: [{
+        id: 0,
+        file: {
+          name: 'test1',
+          progress: 50,
+          status: 'running'
+        },
+        cos: null
       }],
       progressValue: 50,
       progressMax: 100
