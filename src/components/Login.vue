@@ -1,5 +1,5 @@
 <template>
-<div class="bg">
+<div class="bg animated fadeIn">
   <div class="front">
     <mdb-row class="justify-content-center">
       <mdb-col col="10" sm="8" md="6" lg="5" xl="4">
