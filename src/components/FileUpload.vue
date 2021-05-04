@@ -69,25 +69,27 @@ export default {
   data() {
     return {
       file1: null,
-      tasks: [{
-        id: 0,
-        file: {
-          name: 'test1',
-          progress: 50,
-          status: 'running'
-        },
-        cos: null
-      }],
+      tasks: [
+      //   {
+      //   id: 0,
+      //   file: {
+      //     name: 'test1',
+      //     progress: 50,
+      //     status: 'running'
+      //   },
+      //   cos: null
+      // }
+      ],
       progressValue: 50,
       progressMax: 100
     }
   },
   methods: {
-    fileInputChange: function (file) {
-      console.log(file)
+    fileInputChange: function (uploadFile) {
+      // console.log(uploadFile)
       const that = this
       let fileReader = new FileReader()
-      fileReader.readAsBinaryString(file)
+      fileReader.readAsBinaryString(uploadFile)
 
       // 老长的回调
       fileReader.onload = function(str) {
@@ -96,15 +98,15 @@ export default {
         spark.appendBinary(str.currentTarget.result)
         let md5 = spark.end()
         let uploadModel = {
-          type: file.type,
+          type: uploadFile.type,
           //TODO 从父组件取得path
-          path: '/users/admin/'+ file.name,
-          size: file.size,
+          path: '/users/admin/'+ uploadFile.name,
+          size: uploadFile.size,
           md5: md5
         }
         // const uploadModel = this.getUploadModel(file)
         uploadAxios(uploadModel, that.$cookies.get('token')).then(res => {
-          console.log(uploadModel)
+          // console.log(uploadModel)
           console.log(res)
           // TODO 给用户的反馈
           if (res.status!==200) {
@@ -116,19 +118,33 @@ export default {
             return
           }
           var cos = that.getCosByRes(res)
+          var task = {
+            id: that.tasks.length,
+            file: {
+              name: uploadFile.name,
+              progress: 0,
+              status: 'running' // running pause stop success
+            },
+            cos: cos
+          }
+          that.tasks.unshift(task)
           // console.log(s)
           cos.putObject({
             Bucket: res.data.data.tencentCos.bucket, /* 必须 */
             Region: res.data.data.tencentCos.region,     /* 存储桶所在地域，必须字段 */
             Key: res.data.data.file.storageName,              /* 必须 */
             StorageClass: 'STANDARD',
-            Body: file, // 上传文件对象
+            Body: uploadFile, // 上传文件对象
+            // 进度回调
             onProgress: function(progressData) {
-              console.log(JSON.stringify(progressData));
+              task.file.progress = progressData.loaded / progressData.total * 100
             }
           }, function(err, data) {
+            task.file.progress = 100
+            // TODO 处理error
             confirmAxios(res.data.data.file.id, res.data.data.file.guid, that.$cookies.get('token')).then(confirm => {
-              console.log(confirm)
+              // console.log(confirm)
+              task.file.status = 'success'
             })
           })
           // console.log(cosAuth)
@@ -137,6 +153,7 @@ export default {
       //将当次文件添加到队列后清除file1，以便用户选择新的文件
       //this.$refs['file-input'].reset()
     },
+    // 从net的响应中构造cos
     getCosByRes: function(res) {
       var cos = new COS({
         getAuthorization: function (options, callback) {
