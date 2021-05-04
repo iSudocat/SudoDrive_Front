@@ -85,9 +85,6 @@ export default {
     mdbTblHead,
     mdbTblBody,
   },
-  props: {
-    path: '/users/admin/'
-  },
   data() {
     return {
       file1: null,
@@ -102,17 +99,16 @@ export default {
       //   cos: null
       // }
       ],
+      path: this.$route.query.folder + '/',
       progressValue: 50,
       progressMax: 100
     }
   },
   methods: {
     fileInputChange: function (uploadFile) {
-      // console.log(uploadFile)
       const that = this
       let fileReader = new FileReader()
       fileReader.readAsBinaryString(uploadFile)
-
       // 老长的回调
       fileReader.onload = function(str) {
         let spark = new SparkMD5()
