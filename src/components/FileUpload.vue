@@ -31,17 +31,19 @@
           </td>
           <td>
             <i class="fas fa-play"
-               v-if="task.file.status==='pause'||task.file.status==='stop'"
-               @click="task.file.status='running'">
+               v-if="task.file.status==='pause'"
+               @click="continueTask(task)">
             </i>
             <i class="fas fa-pause"
                v-if="task.file.status==='running'"
-               @click="task.file.status='pause'">
+               @click="pauseTask(task)">
             </i>
             <i class="fas fa-stop"
                v-if="task.file.status==='running'||task.file.status==='pause'" style="margin-left: 5px"
-               @click="task.file.status='stop'">
+               @click="stopTask(task)">
             </i>
+            <span v-if="task.file.status==='success'">成功上传</span>
+            <span v-if="task.file.status==='stop'">已取消</span>
           </td>
         </tr>
       </mdb-tbl-body>
@@ -75,7 +77,7 @@ export default {
       //   file: {
       //     name: 'test1',
       //     progress: 50,
-      //     status: 'running'
+      //     status: 'running' // running stop pause success
       //   },
       //   cos: null
       // }
@@ -117,7 +119,9 @@ export default {
             alert(".NET请求错误")
             return
           }
+          // 新建cos
           var cos = that.getCosByRes(res)
+          // 新建Task表格里的对象
           var task = {
             id: that.tasks.length,
             file: {
@@ -125,10 +129,10 @@ export default {
               progress: 0,
               status: 'running' // running pause stop success
             },
+            taskId: null,
             cos: cos
           }
           that.tasks.unshift(task)
-          // console.log(s)
           cos.putObject({
             Bucket: res.data.data.tencentCos.bucket, /* 必须 */
             Region: res.data.data.tencentCos.region,     /* 存储桶所在地域，必须字段 */
@@ -138,6 +142,13 @@ export default {
             // 进度回调
             onProgress: function(progressData) {
               task.file.progress = progressData.loaded / progressData.total * 100
+            },
+            // 创建任务成功的回调 取得TaskId用于任务的控制： 暂停 停止 重新启动
+            onTaskReady: function (taskId) {
+              task.taskId = taskId
+              // console.log("taskId")
+              // console.log(task.id)
+              // console.log(task.taskId)
             }
           }, function(err, data) {
             task.file.progress = 100
@@ -168,6 +179,21 @@ export default {
         }
       })
       return cos
+    },
+    // 暂停某个任务
+    pauseTask: function (task) {
+      task.cos.pauseTask(task.taskId)
+      task.file.status = 'pause'
+    },
+    // 继续某个任务
+    continueTask: function (task) {
+      task.cos.restartTask(task.taskId)
+      task.file.status = 'running'
+    },
+    // 取消某个任务
+    stopTask: function (task) {
+      task.cos.cancelTask(task.taskId)
+      task.file.status = 'stop'
     }
   }
 }
