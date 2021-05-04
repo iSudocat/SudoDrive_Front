@@ -15,6 +15,22 @@
       </b-form-file>
 
     </b-form-group>
+    <div class="view view-cascade gradient-card-header narrower d-flex justify-content-between align-items-center">
+<!--      <div>-->
+
+<!--      </div>-->
+      <a href="" class="white-text mx-3"></a>
+      <div>
+        <button type="button" class="btn btn-rounded btn-sm px-3" @click="continueAllTask">
+          <i class="fas fa-reply-all"></i>
+          <strong style="margin-left: 5px">全部继续</strong>
+        </button>
+        <button type="button" class="btn btn-rounded btn-sm px-3" @click="pauseAllTask">
+          <i class="fas fa-pause-circle"></i>
+          <strong style="margin-left: 5px">全部暂停</strong>
+        </button>
+      </div>
+    </div>
     <mdb-tbl>
       <mdb-tbl-head>
         <tr>
@@ -194,6 +210,18 @@ export default {
     stopTask: function (task) {
       task.cos.cancelTask(task.taskId)
       task.file.status = 'stop'
+    },
+    // 暂停所有任务
+    pauseAllTask: function () {
+      this.tasks.forEach(task => {
+        this.pauseTask(task)
+      })
+    },
+    // 继续所有任务
+    continueAllTask: function () {
+      this.tasks.forEach(task => {
+        this.continueTask(task)
+      })
     }
   }
 }
