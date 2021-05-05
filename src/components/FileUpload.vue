@@ -9,6 +9,7 @@
           placeholder="点击选择或拖动文件至此处"
           browse-text="添加"
           @input="fileInputChange"
+          :multiple="true"
       >
       </b-form-file>
 
@@ -103,80 +104,82 @@ export default {
     }
   },
   methods: {
-    fileInputChange: function (uploadFile) {
+    fileInputChange: function (uploadFiles) {
       const that = this
-      let fileReader = new FileReader()
-      fileReader.readAsBinaryString(uploadFile)
-      // 老长的回调
-      fileReader.onload = function(str) {
-        let spark = new SparkMD5()
-        // console.log(str.currentTarget.result)
-        spark.appendBinary(str.currentTarget.result)
-        let md5 = spark.end()
-        let uploadModel = {
-          type: uploadFile.type,
-          path: that.path + uploadFile.name,
-          size: uploadFile.size,
-          md5: md5
-        }
-        // const uploadModel = this.getUploadModel(file)
-        uploadAxios(uploadModel, that.$cookies.get('token')).then(res => {
-          // console.log(uploadModel)
-          console.log(res)
-          // TODO 给用户的反馈
-          if (res.status!==200) {
-            alert("HTTP请求错误")
-            return
+      uploadFiles.forEach(uploadFile => {
+        let fileReader = new FileReader()
+        fileReader.readAsBinaryString(uploadFile)
+        // 老长的回调
+        fileReader.onload = function(str) {
+          let spark = new SparkMD5()
+          // console.log(str.currentTarget.result)
+          spark.appendBinary(str.currentTarget.result)
+          let md5 = spark.end()
+          let uploadModel = {
+            type: uploadFile.type,
+            path: that.path + uploadFile.name,
+            size: uploadFile.size,
+            md5: md5
           }
-          if (!(res.data.status===100||res.data.status===101)) {
-            alert(".NET请求错误")
-            return
-          }
-          // 新建cos
-          var cos = that.getCosByRes(res)
-          // 新建Task表格里的对象
-          var task = {
-            id: that.tasks.length,
-            file: {
-              name: uploadFile.name,
-              progress: 0,
-              status: 'running' // running pause stop success
-            },
-            taskId: null,
-            cos: cos
-          }
-          that.tasks.unshift(task)
-          cos.sliceUploadFile({
-            Bucket: res.data.data.tencentCos.bucket, /* 必须 */
-            Region: res.data.data.tencentCos.region,     /* 存储桶所在地域，必须字段 */
-            Key: res.data.data.file.storageName,              /* 必须 */
-            StorageClass: 'STANDARD',
-            Body: uploadFile, // 上传文件对象
-            // 进度回调
-            onProgress: function(progressData) {
-              // console.log(`loaded:${progressData.loaded},total:${progressData.total}`)
-              if (progressData.loaded === 0) return
-              task.file.progress = progressData.loaded / progressData.total * 100
-            },
-            // 创建任务成功的回调 取得TaskId用于任务的控制： 暂停 停止 重新启动
-            onTaskReady: function (taskId) {
-              task.taskId = taskId
-            },
-          }, function(err, data) {
-            if (err == null) {
-              task.file.progress = 100
-              confirmAxios(res.data.data.file.id, res.data.data.file.guid, that.$cookies.get('token')).then(confirm => {
-                // console.log(confirm)
-                task.file.status = 'success'
-              })
+          // const uploadModel = this.getUploadModel(file)
+          uploadAxios(uploadModel, that.$cookies.get('token')).then(res => {
+            // console.log(uploadModel)
+            console.log(res)
+            // TODO 给用户的反馈
+            if (res.status!==200) {
+              alert("HTTP请求错误")
+              return
             }
-            else {
-              task.file.status = 'error'
+            if (!(res.data.status===100||res.data.status===101)) {
+              alert(".NET请求错误")
+              return
             }
+            // 新建cos
+            var cos = that.getCosByRes(res)
+            // 新建Task表格里的对象
+            var task = {
+              id: that.tasks.length,
+              file: {
+                name: uploadFile.name,
+                progress: 0,
+                status: 'running' // running pause stop success
+              },
+              taskId: null,
+              cos: cos
+            }
+            that.tasks.unshift(task)
+            cos.sliceUploadFile({
+              Bucket: res.data.data.tencentCos.bucket, /* 必须 */
+              Region: res.data.data.tencentCos.region,     /* 存储桶所在地域，必须字段 */
+              Key: res.data.data.file.storageName,              /* 必须 */
+              StorageClass: 'STANDARD',
+              Body: uploadFile, // 上传文件对象
+              // 进度回调
+              onProgress: function(progressData) {
+                // console.log(`loaded:${progressData.loaded},total:${progressData.total}`)
+                if (progressData.loaded === 0) return
+                task.file.progress = progressData.loaded / progressData.total * 100
+              },
+              // 创建任务成功的回调 取得TaskId用于任务的控制： 暂停 停止 重新启动
+              onTaskReady: function (taskId) {
+                task.taskId = taskId
+              },
+            }, function(err, data) {
+              if (err == null) {
+                task.file.progress = 100
+                confirmAxios(res.data.data.file.id, res.data.data.file.guid, that.$cookies.get('token')).then(confirm => {
+                  // console.log(confirm)
+                  task.file.status = 'success'
+                })
+              }
+              else {
+                task.file.status = 'error'
+              }
+            })
+            // console.log(cosAuth)
           })
-          // console.log(cosAuth)
-        })
-      }
+        }
+      })
     },
     // 从net的响应中构造cos
     getCosByRes: function(res) {
