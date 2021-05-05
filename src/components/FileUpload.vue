@@ -42,7 +42,7 @@
         <tr v-for="task in tasks" :key="task.id">
           <td>{{task.file.name}}</td>
           <td>
-            <b-progress style="margin-left: -30px" :value="task.file.progress" max="100" precision="2" show-progress animated></b-progress>
+            <b-progress style="margin-left: -30px" :value="task.file.progress" max="100" precision="2" :variant="task.file.variant" show-progress animated></b-progress>
           </td>
           <td>
             <i class="fas fa-play"
@@ -127,59 +127,68 @@ export default {
           // const uploadModel = this.getUploadModel(file)
           uploadAxios(uploadModel, that.$cookies.get('token')).then(res => {
             // console.log(uploadModel)
-            // console.log(res)
-            // TODO 给用户的反馈
-            if (res.status!==200) {
-              alert("HTTP请求错误")
-              return
-            }
-            if (!(res.data.status===100||res.data.status===101)) {
-              alert(".NET请求错误")
-              return
-            }
-            // 新建cos
-            var cos = that.getCosByRes(res)
-            // 新建Task表格里的对象
-            var task = {
-              id: that.tasks.length,
-              file: {
-                name: uploadFile.name,
-                progress: 0,
-                status: 'running' // running pause stop success
-              },
-              taskId: null,
-              cos: cos
-            }
-            that.tasks.unshift(task)
-            cos.sliceUploadFile({
-              Bucket: res.data.data.tencentCos.bucket, /* 必须 */
-              Region: res.data.data.tencentCos.region,     /* 存储桶所在地域，必须字段 */
-              Key: res.data.data.file.storageName,              /* 必须 */
-              StorageClass: 'STANDARD',
-              Body: uploadFile, // 上传文件对象
-              // 进度回调
-              onProgress: function(progressData) {
-                // console.log(`loaded:${progressData.loaded},total:${progressData.total}`)
-                if (progressData.loaded === 0) return
-                task.file.progress = progressData.loaded / progressData.total * 100
-              },
-              // 创建任务成功的回调 取得TaskId用于任务的控制： 暂停 停止 重新启动
-              onTaskReady: function (taskId) {
-                task.taskId = taskId
-              },
-            }, function(err, data) {
-              if (err == null) {
-                task.file.progress = 100
-                confirmAxios(res.data.data.file.id, res.data.data.file.guid, that.$cookies.get('token')).then(confirm => {
-                  // console.log(confirm)
-                  task.file.status = 'success'
-                })
+            console.log(res)
+              if (res.status===0) {
+                throw '文件已存在'
               }
-              else {
-                task.file.status = 'error'
+              if (res.status!==200) {
+                throw 'HTTP请求错误'
               }
-            })
+              if (!(res.data.status===100||res.data.status===101)) {
+                throw '.NET请求错误'
+              }
+              // 新建cos
+              var cos = that.getCosByRes(res)
+              // 新建Task表格里的对象
+              var task = {
+                id: that.tasks.length,
+                file: {
+                  name: uploadFile.name,
+                  progress: 0,
+                  status: 'running', // running pause stop success
+                  variant: null
+                },
+                taskId: null,
+                cos: cos
+              }
+              that.tasks.unshift(task)
+              cos.sliceUploadFile({
+                Bucket: res.data.data.tencentCos.bucket, /* 必须 */
+                Region: res.data.data.tencentCos.region,     /* 存储桶所在地域，必须字段 */
+                Key: res.data.data.file.storageName,              /* 必须 */
+                StorageClass: 'STANDARD',
+                Body: uploadFile, // 上传文件对象
+                // 进度回调
+                onProgress: function(progressData) {
+                  // console.log(`loaded:${progressData.loaded},total:${progressData.total}`)
+                  if (progressData.loaded === 0) return
+                  task.file.progress = progressData.loaded / progressData.total * 100
+                },
+                // 创建任务成功的回调 取得TaskId用于任务的控制： 暂停 停止 重新启动
+                onTaskReady: function (taskId) {
+                  task.taskId = taskId
+                },
+              }, function(err, data) {
+                if (err == null) {
+                  task.file.progress = 100
+                  task.file.variant = 'success'
+                  confirmAxios(res.data.data.file.id, res.data.data.file.guid, that.$cookies.get('token')).then(confirm => {
+                    // console.log(confirm)
+                    task.file.status = 'success'
+                  })
+                }
+                else {
+                  task.file.status = 'error'
+                }
+              })
             // console.log(cosAuth)
+          }).catch(axiosErr => {
+            that.$bvToast.toast(`上传失败。`, {
+              title: axiosErr.response.data.message,
+              toaster: 'b-toaster-top-center',
+              solid: true,
+              variant: 'danger'
+            })
           })
         }
       })
@@ -204,17 +213,22 @@ export default {
     pauseTask: function (task) {
       task.cos.pauseTask(task.taskId)
       task.file.status = 'pause'
+      task.file.variant = 'warning'
       console.log('pause:'+task.file.name)
     },
     // 继续某个任务
     continueTask: function (task) {
       task.cos.restartTask(task.taskId)
       task.file.status = 'running'
+      task.file.variant = null
+      console.log('continue:'+task.file.name)
     },
     // 取消某个任务
     stopTask: function (task) {
       task.cos.cancelTask(task.taskId)
       task.file.status = 'stop'
+      task.file.variant = 'danger'
+      console.log('stop:'+task.file.name)
     },
     // 暂停所有任务
     pauseAllTask: function () {
