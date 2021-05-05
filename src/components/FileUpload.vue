@@ -33,7 +33,7 @@
     <mdb-tbl responsive>
       <mdb-tbl-head>
         <tr>
-          <th >文件名</th>
+          <th @click="getVersion">文件名</th>
           <th style="width:120px">进度</th>
           <th style="width:100px">操作</th>
         </tr>
@@ -73,7 +73,7 @@
 var COS = require('cos-js-sdk-v5');
 
 import SparkMD5 from "spark-md5";
-import {uploadAxios, confirmAxios} from "@/js/NETapi";
+import {uploadAxios, confirmAxios, versionAxios} from "@/js/NETapi";
 import { mdbTbl, mdbTblHead, mdbTblBody } from 'mdbvue';
 
 export default {
@@ -223,6 +223,11 @@ export default {
     continueAllTask: function () {
       this.tasks.forEach(task => {
         this.continueTask(task)
+      })
+    },
+    getVersion: function () {
+      versionAxios(this.$cookies.get('token')).then(versionRes => {
+        console.log(versionRes.data)
       })
     }
   }

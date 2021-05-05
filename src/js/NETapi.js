@@ -1,5 +1,5 @@
 import axios from "axios";
-export {uploadAxios,confirmAxios}
+export {uploadAxios,confirmAxios,versionAxios}
 
 // 从.NET后端获取上传所需信息
 let uploadAxios = function (uploadModel, token) {
@@ -21,4 +21,11 @@ let confirmAxios = function (id, guid, token) {
         },
         {headers: {Authorization: "Bearer " + token, "Content-Type": "application/json"}}
     )
+}
+
+// 版本号
+let versionAxios = function (token) {
+    return axios.get('/api/version',
+        {headers: {Authorization: "Bearer " + token, "Content-Type": "application/json"}}
+        )
 }
