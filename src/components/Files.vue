@@ -1,6 +1,5 @@
 <template>
   <div id="files">
-
     <mdb-row class="justify-content-center">
       <mdb-col col="10">
         <div>
@@ -18,7 +17,7 @@
         </div>
       </mdb-col>
       <mdb-col col="10">
-        <b-breadcrumb :items="breadItems"></b-breadcrumb>
+        <b-breadcrumb style="margin-top: 15px; margin-bottom: -5px;" :items="breadItems"></b-breadcrumb>
       </mdb-col>
     </mdb-row>
     <mdb-row class="justify-content-md-center animated fadeIn">
@@ -27,9 +26,7 @@
         </table>
       </mdb-col>
     </mdb-row>
-
   </div>
-
 </template>
 
 <script>
@@ -90,7 +87,49 @@ export default {
   computed:{
     breadItems: function (){
       let items = []
-      this.folder
+
+      const userFolder = '/users/' + this.username
+      const groupFolder = '/groups'
+
+      items.push({
+        html: '<i class="fas fa-home"></i> ' + this.username,
+        href: '/files?folder=' + userFolder
+      })
+
+      if(this.folder.startsWith(userFolder)){
+        let t = this.folder.substring(userFolder.length).split('/')
+        console.log(t)
+
+        t.forEach((element) => {
+          if(element !== ''){
+            items.push({
+              text: element,
+              href: '/files?folder=' + userFolder + "/" + element
+            })
+          }
+        })
+
+      }else{
+        let t = this.folder.substring(groupFolder.length).split('/')
+        console.log(t)
+
+        items.push({
+          text: '共享',
+          href: '/files?folder=' + groupFolder
+        })
+
+        t.forEach((element) => {
+          if(element !== ''){
+            items.push({
+              text: element,
+              href: '/files?folder=' + groupFolder + "/" + element
+            })
+          }
+        })
+      }
+
+      return items
+
     }
   },
   methods: {
