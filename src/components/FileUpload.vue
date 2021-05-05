@@ -71,6 +71,7 @@
 
 // import CosAuth from '../js/cos-auth.js'
 var COS = require('cos-js-sdk-v5');
+var mime = require('mime-types')
 
 import SparkMD5 from "spark-md5";
 import {uploadAxios, confirmAxios, versionAxios} from "@/js/NETapi";
@@ -116,15 +117,17 @@ export default {
           spark.appendBinary(str.currentTarget.result)
           let md5 = spark.end()
           let uploadModel = {
-            type: uploadFile.type,
+            type: uploadFile.type == '' ?
+                (mime.lookup(uploadFile.name) === false ? 'sudo/cat' : mime.lookup(uploadFile.name)) : uploadFile.type,
             path: that.path + uploadFile.name,
             size: uploadFile.size,
             md5: md5
           }
+          console.log(uploadModel)
           // const uploadModel = this.getUploadModel(file)
           uploadAxios(uploadModel, that.$cookies.get('token')).then(res => {
             // console.log(uploadModel)
-            console.log(res)
+            // console.log(res)
             // TODO 给用户的反馈
             if (res.status!==200) {
               alert("HTTP请求错误")
