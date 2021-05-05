@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Styled -->
-    <b-form-group label="上传文件:" label-cols-sm="2">
+    <b-form-group label="上传文件" label-cols-sm="2">
       <b-form-file
           id="file-small"
           ref="file-input"

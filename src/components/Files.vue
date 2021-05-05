@@ -11,9 +11,12 @@
           </mdb-btn-group>
           <b-sidebar id="sidebar-right" title="上传任务" right width="500px"
                      header-class="background-color: grey lighten-5">
-            <div class="px-3 py-2 grey lighten-5" style="height: 100%; ">
-              <file-upload></file-upload>
+            <div class="grey lighten-5" style="height: 100%;">
+              <div class="px-3 py-2 grey lighten-5">
+                <file-upload></file-upload>
+              </div>
             </div>
+
           </b-sidebar>
         </div>
       </mdb-col>
@@ -23,7 +26,7 @@
     </mdb-row>
     <mdb-row class="justify-content-md-center animated fadeIn">
       <mdb-col col="10">
-        <table style="margin-top: 20px" id="table" data-pagination="false" data-show-footer="false">
+        <table style="margin-top: 20px" id="table" data-pagination="true" data-show-footer="false">
         </table>
       </mdb-col>
     </mdb-row>
@@ -69,7 +72,7 @@ export default {
       showPage: false,
       idSelections: [],
       pathSelections: [],
-      amount: 0,  //文件总数，从get中取得
+      typeSelections: [],
       allFileData: [],  //所有文件data，amount超过1000时使用
       username: '',
       token: '',
@@ -98,21 +101,24 @@ export default {
     try{
       let response = await this.axios.get('/api/storage/file?offset=0&amount=1000&folder=' + this.folder, {headers: {Authorization: "Bearer " + this.token}})
       //console.log(response.data)
-      this.amount = response.data.data.amount
+      let amount = response.data.data.amount
 
-      if(this.amount <= 1000){
-        this.initTable(response.data.data)
+      if(amount < 1000){
+        this.initTable(response.data.data.files)
       }else{
         let offset = 1000
-        this.allFileData.push(response.data.data)
-        while(offset <= this.amount){
+        this.allFileData=this.allFileData.concat(response.data.data.files)
+        while(amount === 1000){
           let response = await this.axios.get('/api/storage/file?offset=' + offset + '&amount=1000&folder=' + this.folder, {headers: {Authorization: "Bearer " + this.token}})
-          this.allFileData.push(response.data.data)
+          this.allFileData=this.allFileData.concat(response.data.data.files)
           offset = offset + 1000
+          amount = response.data.data.amount
         }
+        //console.log(this.allFileData)
         this.initTable(this.allFileData)
       }
     }catch (e) {
+      //console.log(e)
       this.$bvToast.toast(`请检查网络连接或刷新重试。`, {
         title: `文件列表加载失败`,
         toaster: 'b-toaster-top-center',
@@ -181,7 +187,7 @@ export default {
         })
       }
 
-      data.files.forEach((element) => {
+      data.forEach((element) => {
         fileData.push({
           id: element.id,
           name: element.name,
@@ -209,6 +215,10 @@ export default {
         locale: 'zh-CN',
         sortName: "type",
         sortOrder: "",
+        paginationParts: ['pageInfo', 'pageList'],
+        paginationSuccessivelySize: 5,
+        paginationPagesBySide: 2,
+        pageSize: 10,
         columns: [
           {
             field: 'state',
@@ -267,13 +277,19 @@ export default {
           return row.path
         })
       }
+      function getTypeSelections() {
+        return $.map($table.bootstrapTable('getSelections'), function (row) {
+          return row.type
+        })
+      }
 
       $table.on('check.bs.table uncheck.bs.table ' + 'check-all.bs.table uncheck-all.bs.table',
           function () {
             $remove.prop('disabled', !$table.bootstrapTable('getSelections').length)
             _this.idSelections = getIdSelections()
             _this.pathSelections = getPathSelections()
-            //console.log(_this.idSelections)
+            _this.typeSelections = getTypeSelections()
+            console.log(_this.idSelections)
             //console.log(_this.pathSelections)
           })
     },
@@ -399,11 +415,13 @@ export default {
     batchDownload: function (){
       const _this = this
       let i = 0
-      this.idSelections.forEach((element) => {
-        setTimeout(function() {
-          _this.downloadCosFile(element)
-        }, i * 500)  // 不延时下载可能被吞
-        i++
+      this.idSelections.forEach((element,index) => {
+        if(this.typeSelections[index] !== '文件夹' && this.typeSelections[index] !== '共享文件夹'){
+          setTimeout(function() {
+            _this.downloadCosFile(element)
+          }, i * 500)  // 不延时下载可能被吞
+          i++
+        }
       })
     },
     batchDelete: function (){
