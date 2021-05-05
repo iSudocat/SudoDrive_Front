@@ -26,7 +26,7 @@
     </mdb-row>
     <mdb-row class="justify-content-md-center animated fadeIn">
       <mdb-col col="10">
-        <table style="margin-top: 20px" id="table" data-pagination="false" data-show-footer="false">
+        <table style="margin-top: 20px" id="table" data-pagination="true" data-show-footer="false">
         </table>
       </mdb-col>
     </mdb-row>
@@ -215,6 +215,10 @@ export default {
         locale: 'zh-CN',
         sortName: "type",
         sortOrder: "",
+        paginationParts: ['pageInfo', 'pageList'],
+        paginationSuccessivelySize: 5,
+        paginationPagesBySide: 2,
+        pageSize: 10,
         columns: [
           {
             field: 'state',
