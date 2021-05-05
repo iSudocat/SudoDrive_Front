@@ -11,9 +11,12 @@
           </mdb-btn-group>
           <b-sidebar id="sidebar-right" title="上传任务" right width="500px"
                      header-class="background-color: grey lighten-5">
-            <div class="px-3 py-2 grey lighten-5" style="height: 100%; ">
-              <file-upload></file-upload>
+            <div class="grey lighten-5" style="height: 100%;">
+              <div class="px-3 py-2 grey lighten-5">
+                <file-upload></file-upload>
+              </div>
             </div>
+
           </b-sidebar>
         </div>
       </mdb-col>
