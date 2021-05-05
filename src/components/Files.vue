@@ -8,7 +8,6 @@
             <mdb-btn color="primary" size="md" v-b-toggle.sidebar-right>上传</mdb-btn>
             <mdb-btn style="margin-left: 5px" color="primary" size="md" v-on:click="batchDownload">批量下载</mdb-btn>
             <mdb-btn style="margin-left: 5px" color="primary" size="md" v-on:click="batchDelete">批量删除</mdb-btn>
-
           </mdb-btn-group>
           <b-sidebar id="sidebar-right" title="上传任务" right width="500px"
                      header-class="background-color: grey lighten-5">
@@ -18,7 +17,9 @@
           </b-sidebar>
         </div>
       </mdb-col>
-
+      <mdb-col col="10">
+        <b-breadcrumb :items="breadItems"></b-breadcrumb>
+      </mdb-col>
     </mdb-row>
     <mdb-row class="justify-content-md-center animated fadeIn">
       <mdb-col col="10">
@@ -86,11 +87,29 @@ export default {
     }
 
   },
+  computed:{
+    breadItems: function (){
+      let items = []
+      this.folder
+    }
+  },
   methods: {
     initTable: function (data) {
       const _this = this
       let fileData = []
-      // 数据预处理
+
+      // 若为用户根目录则先添加共享文件夹根目录
+      if(this.folder === '/users/' + this.username){
+        fileData.push({
+          id: 0,
+          name: '共享',
+          size: '-',
+          updatedAt: '',
+          type: '共享文件夹',
+          path: '/groups'
+        })
+      }
+
       data.files.forEach((element) => {
 
         fileData.push({
@@ -207,6 +226,16 @@ export default {
           folder,
           '" style="color:#3F729B">',
           '<i style="margin-right:5px" class="fas fa-folder"></i>',
+          row.name,
+          '</a>'
+        ].join('')
+      } else if (row.type === '共享文件夹') {
+        const folder = '/groups'
+        return [
+          '<a class="folder" href="/files?folder=',
+          folder,
+          '" style="color:#3F729B">',
+          '<i style="margin-right:5px" class="fas fa-share-alt"></i>',
           row.name,
           '</a>'
         ].join('')
