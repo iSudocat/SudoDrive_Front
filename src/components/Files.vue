@@ -179,7 +179,7 @@ export default {
       if(this.folder === '/users/' + this.username){
         fileData.push({
           id: 666,
-          name: '共享',
+          name: '共享组',
           size: '-',
           updatedAt: '',
           type: '共享文件夹',
@@ -239,7 +239,7 @@ export default {
             title: '类型',
             sortable: true,
             align: 'left',
-            visible: true
+            visible: false
           },
           {
             field: 'size',
