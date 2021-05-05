@@ -77,13 +77,13 @@ export default {
     }
   },
   async mounted() {
-    if(this.username === 'admin'){
+    if(this.username === 'admin')   // 管理员账户
+    {
       if(this.groupName === undefined){
         this.showGroupMember = false
         try{
           let response = await this.axios.get('/api/group', {headers: {Authorization: "Bearer " + this.token}})
           console.log(response.data)
-          this.amount = response.data.data.amount
           this.initGroupTable(response.data.data)
         }catch (e) {
           this.$bvToast.toast(`请检查网络连接或刷新重试。`, {
@@ -93,12 +93,11 @@ export default {
             variant: 'danger'
           })
         }
-
       }else{
         try{
           let response = await this.axios.get('/api/group', {headers: {Authorization: "Bearer " + this.token}})
           console.log(response.data)
-          this.amount = response.data.data.amount
+
           this.initGroupTable(response.data.data)
         }catch (e) {
           this.$bvToast.toast(`请检查网络连接或刷新重试。`, {
@@ -110,11 +109,12 @@ export default {
         }
 
         try{
-          this.showGroupMember = true
+
           let response1 = await this.axios.get('/api/group/' + this.groupName + '/member', {headers: {Authorization: "Bearer " + this.token}})
           console.log(response1.data)
-          this.amount = response1.data.data.amount
+
           this.initGroupMemberTable(response1.data.data)
+          this.showGroupMember = true
         }catch (e) {
           this.$bvToast.toast(`请检查网络连接或刷新重试。`, {
             title: `群组成员列表加载失败`,
@@ -124,7 +124,51 @@ export default {
           })
         }
       }
-    }else{
+    }
+    else  // 非管理员账户
+    {
+      if(this.groupName === undefined){
+        this.showGroupMember = false
+        try{
+          let response = await this.axios.get('/api/user/' + this.username, {headers: {Authorization: "Bearer " + this.token}})
+          console.log(response.data)
+          this.initGroupTable(response.data.data)
+        }catch (e) {
+          this.$bvToast.toast(`请检查网络连接或刷新重试。`, {
+            title: `群组列表加载失败`,
+            toaster: 'b-toaster-top-center',
+            solid: true,
+            variant: 'danger'
+          })
+        }
+      }else{
+        try{
+          let response = await this.axios.get('/api/user/' + this.username, {headers: {Authorization: "Bearer " + this.token}})
+          console.log(response.data)
+          this.initGroupTable(response.data.data)
+        }catch (e) {
+          this.$bvToast.toast(`请检查网络连接或刷新重试。`, {
+            title: `群组列表加载失败`,
+            toaster: 'b-toaster-top-center',
+            solid: true,
+            variant: 'danger'
+          })
+        }
+
+        try{
+          let response1 = await this.axios.get('/api/group/' + this.groupName + '/member', {headers: {Authorization: "Bearer " + this.token}})
+          console.log(response1.data)
+          this.initGroupMemberTable(response1.data.data)
+          this.showGroupMember = true
+        }catch (e) {
+          this.$bvToast.toast(`请检查网络连接或刷新重试。`, {
+            title: `群组成员列表加载失败`,
+            toaster: 'b-toaster-top-center',
+            solid: true,
+            variant: 'danger'
+          })
+        }
+      }
 
 
 
@@ -141,6 +185,8 @@ export default {
           id: element.id,
           groupName: element.groupName,
           createdAt: new Date(element.createdAt).toLocaleString(undefined, {hour12: false}),
+          canAddMember: element.canAddMember ?? true,
+          canRemoveMember: element.canRemoveMember ?? true
         })
       })
 
@@ -177,6 +223,16 @@ export default {
             sortable: true,
             align: 'left',
             width: 200
+          },
+          {
+            field: 'canAddMember',
+            title: '添加成员权限',
+            visible: false
+          },
+          {
+            field: 'canRemoveMember',
+            title: '删除成员权限',
+            visible: false
           },
           {
             field: 'operate',
@@ -248,23 +304,32 @@ export default {
       })
     },
     groupNameFormatter: function (value, row, index) {
-      return [
-        '<a class="groupMember" href="/groupManage?groupName=',
-        value,
-        '" style="color:#3F729B">',
-        value,
-        '</a>'
-      ].join('')
+      if(row.canAddMember !== true || row.canRemoveMember !== true){
+        return value
+      }else{
+        return [
+          '<a class="groupMember" href="/groupManage?groupName=',
+          value,
+          '" style="color:#3F729B">',
+          value,
+          '</a>'
+        ].join('')
+      }
+
     },
     groupOperateFormatter: function (value, row) {
-      if(row.groupName !== 'Admin' && row.groupName !== 'User' && row.groupName !== 'Guest'){
-        return [
-          '<a class="deleteGroup" href="javascript:void(0)" title="删除用户组">',
-          '<i class="fas fa-trash-alt"></i>',
-          '</a>',
-        ].join('')
-      }else{
+      if(row.canAddMember !== true || row.canRemoveMember !== true){
         return []
+      }else {
+        if (row.groupName !== 'Admin' && row.groupName !== 'User' && row.groupName !== 'Guest') {
+          return [
+            '<a class="deleteGroup" href="javascript:void(0)" title="删除用户组">',
+            '<i class="fas fa-trash-alt"></i>',
+            '</a>',
+          ].join('')
+        } else {
+          return []
+        }
       }
     },
     groupMemberOperateFormatter: function (value, row) {
