@@ -81,7 +81,7 @@ export default {
   beforeMount() {
 
     this.activeItem = this.$route.matched[1].props.default.page;
-    console.log(this.activeItem)
+    //console.log(this.activeItem)
   },
   computed: {
     getUsername: function () {

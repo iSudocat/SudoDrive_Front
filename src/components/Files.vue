@@ -4,9 +4,10 @@
       <mdb-col col="10">
         <div>
           <mdb-btn-group>
-            <mdb-btn color="primary" size="md" v-b-toggle.sidebar-right>上传</mdb-btn>
-            <mdb-btn style="margin-left: 5px" color="primary" size="md" v-on:click="batchDownload">批量下载</mdb-btn>
-            <mdb-btn style="margin-left: 5px" color="primary" size="md" v-on:click="batchDelete">批量删除</mdb-btn>
+            <mdb-btn color="primary" size="md" v-b-toggle.sidebar-right><i class="fas fa-upload" style="padding-right: 5px;"></i>上传</mdb-btn>
+            <mdb-btn style="margin-left: 5px" color="primary" size="md" v-on:click="addFolder($event.target)"><i class="fas fa-folder-plus" style="padding-right: 5px;"></i>新建文件夹</mdb-btn>
+            <mdb-btn style="margin-left: 5px" color="primary" size="md" v-on:click="batchDownload"><i class="fas fa-download" style="padding-right: 5px;"></i>批量下载</mdb-btn>
+            <mdb-btn style="margin-left: 5px" color="primary" size="md" v-on:click="batchDelete"><i class="fas fa-trash-alt" style="padding-right: 5px;"></i>批量删除</mdb-btn>
           </mdb-btn-group>
           <b-sidebar id="sidebar-right" title="上传任务" right width="500px"
                      header-class="background-color: grey lighten-5">
@@ -26,6 +27,23 @@
         </table>
       </mdb-col>
     </mdb-row>
+
+    <b-modal size="md" :id="newFolderModal.id" :title="newFolderModal.title">
+      <form>
+        <b-form-group label="文件夹名称：">
+          <b-form-input v-model="newFolderModal.folderName"></b-form-input>
+        </b-form-group>
+      </form>
+
+      <template v-slot:modal-footer>
+        <mdb-btn color="grey" size="sm" @click="handleCancel">
+          取消
+        </mdb-btn>
+        <mdb-btn color="success" size="sm" @click="handleOk">
+          确定
+        </mdb-btn>
+      </template>
+    </b-modal>
   </div>
 </template>
 
@@ -54,7 +72,13 @@ export default {
       allFileData: [],  //所有文件data，amount超过1000时使用
       username: '',
       token: '',
-      folder: ''
+      folder: '',
+      newFolderModal: {
+        index: null,
+        id: 'info-modal',
+        title: '新建文件夹',
+        folderName: ''
+      }
     }
   },
   beforeMount() {
@@ -98,8 +122,7 @@ export default {
 
       if(this.folder.startsWith(userFolder)){
         let t = this.folder.substring(userFolder.length).split('/')
-        console.log(t)
-
+        //console.log(t)
         t.forEach((element) => {
           if(element !== ''){
             items.push({
@@ -108,16 +131,13 @@ export default {
             })
           }
         })
-
       }else{
         let t = this.folder.substring(groupFolder.length).split('/')
-        console.log(t)
-
+        //console.log(t)
         items.push({
           text: '共享',
           href: '/files?folder=' + groupFolder
         })
-
         t.forEach((element) => {
           if(element !== ''){
             items.push({
@@ -129,7 +149,6 @@ export default {
       }
 
       return items
-
     }
   },
   methods: {
@@ -140,7 +159,7 @@ export default {
       // 若为用户根目录则先添加共享文件夹根目录
       if(this.folder === '/users/' + this.username){
         fileData.push({
-          id: 0,
+          id: 666,
           name: '共享',
           size: '-',
           updatedAt: '',
@@ -167,7 +186,7 @@ export default {
         },
         'click .delete': function (e, value, row, index) {
           _this.deleteFile([row.path])
-          this.$router.go(0)
+          _this.$router.go(0)
         },
       }
 
@@ -287,15 +306,20 @@ export default {
         ].join('')
       }
     },
-    operateFormatter: function () {
-      return [
-        '<a class="download" href="javascript:void(0)" title="下载">',
-        '<i class="fas fa-download"></i>',
-        '</a>',
-        '<a class="delete" style="margin-left:20px" href="javascript:void(0)" title="删除">',
-        '<i class="fas fa-trash-alt"></i>',
-        '</a>'
-      ].join('')
+    operateFormatter: function (value, row, index) {
+      if (row.type !== '共享文件夹' && this.folder !== '/groups') {
+        return [
+          '<a class="download" href="javascript:void(0)" title="下载">',
+          '<i class="fas fa-download"></i>',
+          '</a>',
+          '<a class="delete" style="margin-left:20px" href="javascript:void(0)" title="删除">',
+          '<i class="fas fa-trash-alt"></i>',
+          '</a>'
+        ].join('')
+      }else{
+        return  []
+      }
+
     },
     camSafeUrlEncode: function (str) {// 和 cam 保持一致的 url encode
       return encodeURIComponent(str)
@@ -354,7 +378,34 @@ export default {
     batchDelete: function (){
       this.deleteFile(this.pathSelections)
       this.$router.go(0)
-    }
+    },
+    addFolder: function (button){
+      this.$root.$emit('bv::show::modal', this.newFolderModal.id, button)
+    },
+    handleCancel() {
+      this.$nextTick(() => {
+        this.$bvModal.hide(this.newFolderModal.id)
+      })
+    },
+    async handleOk() {
+      const _this = this
+      try{
+        let response = await this.axios.post('/api/storage/file',
+            {type: 'text/directory', path: _this.folder + "/" + _this.newFolderModal.folderName, size:0, md5: '00000000000000000000000000000000' },
+            {headers: {Authorization: "Bearer " + _this.token}})
+        _this.$router.go(0)
+      }catch (e) {
+        if(e.response.data.status === -100){
+          this.$bvToast.toast(`请检查文件夹名是否合格或网络连接是否正常。`, {
+            title: `新建文件夹失败`,
+            toaster: 'b-toaster-top-center',
+            solid: true,
+            variant: 'danger'
+          })
+        }
+      }
+    },
+
   }
 }
 </script>
