@@ -72,6 +72,7 @@ export default {
       showPage: false,
       idSelections: [],
       pathSelections: [],
+      typeSelections: [],
       amount: 0,  //文件总数，从get中取得
       allFileData: [],  //所有文件data，amount超过1000时使用
       username: '',
@@ -270,13 +271,19 @@ export default {
           return row.path
         })
       }
+      function getTypeSelections() {
+        return $.map($table.bootstrapTable('getSelections'), function (row) {
+          return row.type
+        })
+      }
 
       $table.on('check.bs.table uncheck.bs.table ' + 'check-all.bs.table uncheck-all.bs.table',
           function () {
             $remove.prop('disabled', !$table.bootstrapTable('getSelections').length)
             _this.idSelections = getIdSelections()
             _this.pathSelections = getPathSelections()
-            //console.log(_this.idSelections)
+            _this.typeSelections = getTypeSelections()
+            console.log(_this.idSelections)
             //console.log(_this.pathSelections)
           })
     },
@@ -402,11 +409,13 @@ export default {
     batchDownload: function (){
       const _this = this
       let i = 0
-      this.idSelections.forEach((element) => {
-        setTimeout(function() {
-          _this.downloadCosFile(element)
-        }, i * 500)  // 不延时下载可能被吞
-        i++
+      this.idSelections.forEach((element,index) => {
+        if(this.typeSelections[index] !== '文件夹' && this.typeSelections[index] !== '共享文件夹'){
+          setTimeout(function() {
+            _this.downloadCosFile(element)
+          }, i * 500)  // 不延时下载可能被吞
+          i++
+        }
       })
     },
     batchDelete: function (){
