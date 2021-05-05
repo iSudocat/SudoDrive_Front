@@ -117,8 +117,8 @@ export default {
           spark.appendBinary(str.currentTarget.result)
           let md5 = spark.end()
           let uploadModel = {
-            type: uploadFile.type == '' ?
-                (mime.lookup(uploadFile.name) === false ? 'sudo/cat' : mime.lookup(uploadFile.name)) : uploadFile.type,
+            type: uploadFile.type === '' ?
+                (mime.lookup(uploadFile.name) === false ? 'file/others' : mime.lookup(uploadFile.name)) : uploadFile.type,
             path: that.path + uploadFile.name,
             size: uploadFile.size,
             md5: md5
