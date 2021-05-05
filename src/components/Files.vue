@@ -1,14 +1,13 @@
 <template>
-  <div id="files">
-
+  <div id="files" v-if="showPage">
     <mdb-row class="justify-content-center">
       <mdb-col col="10">
         <div>
           <mdb-btn-group>
-            <mdb-btn color="primary" size="md" v-b-toggle.sidebar-right>上传</mdb-btn>
-            <mdb-btn style="margin-left: 5px" color="primary" size="md" v-on:click="batchDownload">批量下载</mdb-btn>
-            <mdb-btn style="margin-left: 5px" color="primary" size="md" v-on:click="batchDelete">批量删除</mdb-btn>
-
+            <mdb-btn color="primary" size="md" v-b-toggle.sidebar-right><i class="fas fa-upload" style="padding-right: 5px;"></i>上传</mdb-btn>
+            <mdb-btn style="margin-left: 5px" color="primary" size="md" v-on:click="addFolder($event.target)"><i class="fas fa-folder-plus" style="padding-right: 5px;"></i>新建文件夹</mdb-btn>
+            <mdb-btn style="margin-left: 5px" color="primary" size="md" v-on:click="batchDownload"><i class="fas fa-download" style="padding-right: 5px;"></i>批量下载</mdb-btn>
+            <mdb-btn style="margin-left: 5px" color="primary" size="md" v-on:click="batchDelete"><i class="fas fa-trash-alt" style="padding-right: 5px;"></i>批量删除</mdb-btn>
           </mdb-btn-group>
           <b-sidebar id="sidebar-right" title="上传任务" right width="500px"
                      header-class="background-color: grey lighten-5">
@@ -18,7 +17,9 @@
           </b-sidebar>
         </div>
       </mdb-col>
-
+      <mdb-col col="10">
+        <b-breadcrumb style="margin-top: 15px; margin-bottom: -5px;" :items="breadItems"></b-breadcrumb>
+      </mdb-col>
     </mdb-row>
     <mdb-row class="justify-content-md-center animated fadeIn">
       <mdb-col col="10">
@@ -27,8 +28,23 @@
       </mdb-col>
     </mdb-row>
 
-  </div>
+    <b-modal size="md" :id="newFolderModal.id" :title="newFolderModal.title">
+      <form>
+        <b-form-group label="文件夹名称：">
+          <b-form-input v-model="newFolderModal.folderName"></b-form-input>
+        </b-form-group>
+      </form>
 
+      <template v-slot:modal-footer>
+        <mdb-btn color="grey" size="sm" @click="handleCancel">
+          取消
+        </mdb-btn>
+        <mdb-btn color="success" size="sm" @click="handleOk">
+          确定
+        </mdb-btn>
+      </template>
+    </b-modal>
+  </div>
 </template>
 
 <script>
@@ -50,13 +66,20 @@ export default {
   },
   data() {
     return {
+      showPage: false,
       idSelections: [],
       pathSelections: [],
       amount: 0,  //文件总数，从get中取得
       allFileData: [],  //所有文件data，amount超过1000时使用
       username: '',
       token: '',
-      folder: ''
+      folder: '',
+      newFolderModal: {
+        index: null,
+        id: 'info-modal',
+        title: '新建文件夹',
+        folderName: ''
+      }
     }
   },
   beforeMount() {
@@ -65,34 +88,100 @@ export default {
     this.folder = this.$route.query.folder
     if (this.username === null) {
       this.$router.push('/login')
+    }else{
+      this.showPage = true
     }
   },
   async mounted() {
-    const _this = this
-    let response = await this.axios.get('/api/storage/file?offset=0&amount=1000&folder=' + this.folder, {headers: {Authorization: "Bearer " + this.token}})
-    //console.log(response.data)
-    this.amount = response.data.data.amount
+    if(this.showPage === false) return
+    
+    try{
+      let response = await this.axios.get('/api/storage/file?offset=0&amount=1000&folder=' + this.folder, {headers: {Authorization: "Bearer " + this.token}})
+      //console.log(response.data)
+      this.amount = response.data.data.amount
 
-    if(this.amount <= 1000){
-      this.initTable(response.data.data)
-    }else{
-      let offset = 1000
-      this.allFileData.push(response.data.data)
-      while(offset <= this.amount){
-        let response = await this.axios.get('/api/storage/file?offset=' + offset + '&amount=1000&folder=' + this.folder, {headers: {Authorization: "Bearer " + this.token}})
+      if(this.amount <= 1000){
+        this.initTable(response.data.data)
+      }else{
+        let offset = 1000
         this.allFileData.push(response.data.data)
-        offset = offset + 1000
+        while(offset <= this.amount){
+          let response = await this.axios.get('/api/storage/file?offset=' + offset + '&amount=1000&folder=' + this.folder, {headers: {Authorization: "Bearer " + this.token}})
+          this.allFileData.push(response.data.data)
+          offset = offset + 1000
+        }
+        this.initTable(this.allFileData)
       }
+    }catch (e) {
+      this.$bvToast.toast(`请检查网络连接或刷新重试。`, {
+        title: `文件列表加载失败`,
+        toaster: 'b-toaster-top-center',
+        solid: true,
+        variant: 'danger'
+      })
     }
+  },
+  computed:{
+    breadItems: function (){
+      let items = []
 
+      const userFolder = '/users/' + this.username
+      const groupFolder = '/groups'
+
+      items.push({
+        html: '<i class="fas fa-home"></i> ' + this.username,
+        href: '/files?folder=' + userFolder
+      })
+
+      if(this.folder.startsWith(userFolder)){
+        let t = this.folder.substring(userFolder.length).split('/')
+        //console.log(t)
+        t.forEach((element) => {
+          if(element !== ''){
+            items.push({
+              text: element,
+              href: '/files?folder=' + userFolder + "/" + element
+            })
+          }
+        })
+      }else{
+        let t = this.folder.substring(groupFolder.length).split('/')
+        //console.log(t)
+        items.push({
+          text: '共享',
+          href: '/files?folder=' + groupFolder
+        })
+        t.forEach((element) => {
+          if(element !== ''){
+            items.push({
+              text: element,
+              href: '/files?folder=' + groupFolder + "/" + element
+            })
+          }
+        })
+      }
+
+      return items
+    }
   },
   methods: {
     initTable: function (data) {
       const _this = this
       let fileData = []
-      // 数据预处理
-      data.files.forEach((element) => {
 
+      // 若为用户根目录则先添加共享文件夹根目录
+      if(this.folder === '/users/' + this.username){
+        fileData.push({
+          id: 666,
+          name: '共享',
+          size: '-',
+          updatedAt: '',
+          type: '共享文件夹',
+          path: '/groups'
+        })
+      }
+
+      data.files.forEach((element) => {
         fileData.push({
           id: element.id,
           name: element.name,
@@ -109,6 +198,7 @@ export default {
         },
         'click .delete': function (e, value, row, index) {
           _this.deleteFile([row.path])
+          _this.$router.go(0)
         },
       }
 
@@ -209,6 +299,16 @@ export default {
           row.name,
           '</a>'
         ].join('')
+      } else if (row.type === '共享文件夹') {
+        const folder = '/groups'
+        return [
+          '<a class="folder" href="/files?folder=',
+          folder,
+          '" style="color:#3F729B">',
+          '<i style="margin-right:5px" class="fas fa-share-alt"></i>',
+          row.name,
+          '</a>'
+        ].join('')
       } else {
         return [
           '<div class="file">',
@@ -218,15 +318,20 @@ export default {
         ].join('')
       }
     },
-    operateFormatter: function () {
-      return [
-        '<a class="download" href="javascript:void(0)" title="下载">',
-        '<i class="fas fa-download"></i>',
-        '</a>',
-        '<a class="delete" style="margin-left:20px" href="javascript:void(0)" title="删除">',
-        '<i class="fas fa-trash-alt"></i>',
-        '</a>'
-      ].join('')
+    operateFormatter: function (value, row, index) {
+      if (row.type !== '共享文件夹' && this.folder !== '/groups') {
+        return [
+          '<a class="download" href="javascript:void(0)" title="下载">',
+          '<i class="fas fa-download"></i>',
+          '</a>',
+          '<a class="delete" style="margin-left:20px" href="javascript:void(0)" title="删除">',
+          '<i class="fas fa-trash-alt"></i>',
+          '</a>'
+        ].join('')
+      }else{
+        return  []
+      }
+
     },
     camSafeUrlEncode: function (str) {// 和 cam 保持一致的 url encode
       return encodeURIComponent(str)
@@ -245,32 +350,51 @@ export default {
       link.click(); //强制触发a标签事件
     },
     downloadCosFile: async function (fileID) {
-      let response = await this.axios.get('/api/storage/file?download=true&id=' + fileID, {
-        headers: {Authorization: "Bearer " + this.$cookies.get('token')}
-      })
-      let auth = CosAuth(
-          response.data.data.token.credentials.tmpSecretId,
-          response.data.data.token.credentials.tmpSecretKey,
-          response.data.data.token.credentials.token,
-          response.data.data.token.startTime,
-          response.data.data.token.expiredTime,
-          "get",
-          {'response-content-disposition': 'attachment; filename=' + response.data.data.files[0].name},
-          {},
-          '/' + response.data.data.files[0].storageName
-      )
-      let link = 'https://' + response.data.data.tencentCos.bucket + '.cos.' + response.data.data.tencentCos.region + '.myqcloud.com' +
-          '/' + response.data.data.files[0].storageName +
-          '?response-content-disposition=attachment%3B%20filename%3D' + this.camSafeUrlEncode(response.data.data.files[0].name) +
-          "&" + auth
-      //console.log(link)
-      this.fileDownloadCreate(link)
+      try{
+        let response = await this.axios.get('/api/storage/file?download=true&id=' + fileID, {
+          headers: {Authorization: "Bearer " + this.$cookies.get('token')}
+        })
+        let auth = CosAuth(
+            response.data.data.token.credentials.tmpSecretId,
+            response.data.data.token.credentials.tmpSecretKey,
+            response.data.data.token.credentials.token,
+            response.data.data.token.startTime,
+            response.data.data.token.expiredTime,
+            "get",
+            {'response-content-disposition': 'attachment; filename=' + response.data.data.files[0].name},
+            {},
+            '/' + response.data.data.files[0].storageName
+        )
+        let link = 'https://' + response.data.data.tencentCos.bucket + '.cos.' + response.data.data.tencentCos.region + '.myqcloud.com' +
+            '/' + response.data.data.files[0].storageName +
+            '?response-content-disposition=attachment%3B%20filename%3D' + this.camSafeUrlEncode(response.data.data.files[0].name) +
+            "&" + auth
+        //console.log(link)
+        this.fileDownloadCreate(link)
+
+      }catch (e) {
+        this.$bvToast.toast(`请检查网络连接或重试操作。`, {
+          title: `文件下载失败`,
+          toaster: 'b-toaster-top-center',
+          solid: true,
+          variant: 'danger'
+        })
+      }
     },
     deleteFile: async function (filePath) {
-      let response = await this.axios.delete('/api/storage/file', {
-        data: {path: filePath},
-        headers: {Authorization: "Bearer " + this.$cookies.get('token')}
-      })
+      try{
+        let response = await this.axios.delete('/api/storage/file', {
+          data: {path: filePath},
+          headers: {Authorization: "Bearer " + this.$cookies.get('token')}
+        })
+      }catch (e) {
+        this.$bvToast.toast(`请检查网络连接或重试操作。`, {
+          title: `文件删除失败`,
+          toaster: 'b-toaster-top-center',
+          solid: true,
+          variant: 'danger'
+        })
+      }
     },
     batchDownload: function (){
       const _this = this
@@ -285,7 +409,34 @@ export default {
     batchDelete: function (){
       this.deleteFile(this.pathSelections)
       this.$router.go(0)
-    }
+    },
+    addFolder: function (button){
+      this.$root.$emit('bv::show::modal', this.newFolderModal.id, button)
+    },
+    handleCancel() {
+      this.$nextTick(() => {
+        this.$bvModal.hide(this.newFolderModal.id)
+      })
+    },
+    async handleOk() {
+      const _this = this
+      try{
+        let response = await this.axios.post('/api/storage/file',
+            {type: 'text/directory', path: _this.folder + "/" + _this.newFolderModal.folderName, size:0, md5: '00000000000000000000000000000000' },
+            {headers: {Authorization: "Bearer " + _this.token}})
+        _this.$router.go(0)
+      }catch (e) {
+        if(e.response.data.status === -100){
+          this.$bvToast.toast(`请检查文件夹名是否合格或网络连接是否正常。`, {
+            title: `新建文件夹失败`,
+            toaster: 'b-toaster-top-center',
+            solid: true,
+            variant: 'danger'
+          })
+        }
+      }
+    },
+
   }
 }
 </script>

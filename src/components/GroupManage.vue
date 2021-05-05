@@ -77,34 +77,64 @@ export default {
     }
   },
   async mounted() {
-    if(this.groupName === undefined){
-      this.showGroupMember = false
-      let response = await this.axios.get('/api/group', {headers: {Authorization: "Bearer " + this.token}})
-      console.log(response.data)
-      this.amount = response.data.data.amount
-      this.initGroupTable(response.data.data)
+    if(this.username === 'admin'){
+      if(this.groupName === undefined){
+        this.showGroupMember = false
+        try{
+          let response = await this.axios.get('/api/group', {headers: {Authorization: "Bearer " + this.token}})
+          console.log(response.data)
+          this.amount = response.data.data.amount
+          this.initGroupTable(response.data.data)
+        }catch (e) {
+          this.$bvToast.toast(`请检查网络连接或刷新重试。`, {
+            title: `群组列表加载失败`,
+            toaster: 'b-toaster-top-center',
+            solid: true,
+            variant: 'danger'
+          })
+        }
 
+      }else{
+        try{
+          let response = await this.axios.get('/api/group', {headers: {Authorization: "Bearer " + this.token}})
+          console.log(response.data)
+          this.amount = response.data.data.amount
+          this.initGroupTable(response.data.data)
+        }catch (e) {
+          this.$bvToast.toast(`请检查网络连接或刷新重试。`, {
+            title: `群组列表加载失败`,
+            toaster: 'b-toaster-top-center',
+            solid: true,
+            variant: 'danger'
+          })
+        }
+
+        try{
+          this.showGroupMember = true
+          let response1 = await this.axios.get('/api/group/' + this.groupName + '/member', {headers: {Authorization: "Bearer " + this.token}})
+          console.log(response1.data)
+          this.amount = response1.data.data.amount
+          this.initGroupMemberTable(response1.data.data)
+        }catch (e) {
+          this.$bvToast.toast(`请检查网络连接或刷新重试。`, {
+            title: `群组成员列表加载失败`,
+            toaster: 'b-toaster-top-center',
+            solid: true,
+            variant: 'danger'
+          })
+        }
+      }
     }else{
 
-      let response = await this.axios.get('/api/group', {headers: {Authorization: "Bearer " + this.token}})
-      console.log(response.data)
-      this.amount = response.data.data.amount
-      this.initGroupTable(response.data.data)
 
-      this.showGroupMember = true
-      let response1 = await this.axios.get('/api/group/' + this.groupName + '/member', {headers: {Authorization: "Bearer " + this.token}})
-      console.log(response1.data)
-      this.amount = response1.data.data.amount
-      this.initGroupMemberTable(response1.data.data)
+
     }
-
   },
   methods:{
     initGroupTable: function (data) {
       const _this = this
       let groupData = []
 
-      // 数据预处理
       data.groups.forEach((element) => {
 
         groupData.push({
@@ -164,7 +194,6 @@ export default {
       const _this = this
       let groupMemberData = []
 
-      // 数据预处理
       data.users.forEach((element) => {
 
         groupMemberData.push({
@@ -237,7 +266,6 @@ export default {
       }else{
         return []
       }
-
     },
     groupMemberOperateFormatter: function (value, row) {
       if(row.username !== 'admin'){
@@ -249,7 +277,6 @@ export default {
       }else{
         return []
       }
-
     },
     addGroup: async function (){
       try{

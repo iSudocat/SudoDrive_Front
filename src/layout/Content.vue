@@ -15,7 +15,7 @@
                         v-bind:class="{active: activeItem === 'groupManage'}">群组管理
           </mdb-nav-item>
           <mdb-nav-item waves-fixed to="/userManage" @click.native="activeItem = 'userManage'"
-                        v-bind:class="{active: activeItem === 'userManage'}">用户管理
+                        v-bind:class="{active: activeItem === 'userManage'}" v-if="showUserManage">用户管理
           </mdb-nav-item>
         </mdb-navbar-nav>
         <mdb-navbar-nav right>
@@ -81,12 +81,12 @@ export default {
   beforeMount() {
 
     this.activeItem = this.$route.matched[1].props.default.page;
-    console.log(this.activeItem)
+    //console.log(this.activeItem)
   },
   computed: {
     getUsername: function () {
       if (this.$cookies.get('username') !== null) {
-        return '欢迎您，' + this.$cookies.get('username')
+        return '欢迎您，' + this.$cookies.get('nickname')
       } else {
         return ''
       }
@@ -98,6 +98,9 @@ export default {
         return '/login'
       }
     },
+    showUserManage: function (){
+      return this.$cookies.get('username') === 'admin'
+    }
   },
   methods: {
     logoutClick: function () {

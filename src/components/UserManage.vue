@@ -35,29 +35,32 @@ export default {
 
     if (this.username === null) {
       this.$router.push('/login')
+    }else if(this.username !== 'admin'){
+      this.$router.push('/login')
     }
   },
-  mounted() {
-    const _this = this
-
-    this.axios.get('/api/user', {headers: {Authorization: "Bearer " + this.token}})
-        .then((response) => {
-          console.log(response.data)
-          _this.amount = response.data.data.amount
-          _this.initTable(response.data.data)
-
+  async mounted() {
+    try{
+      let response = await this.axios.get('/api/user', {headers: {Authorization: "Bearer " + this.token}})
+      console.log(response.data)
+      this.amount = response.data.data.amount
+      this.initTable(response.data.data)
+    }catch (e) {
+      if(e.response.data.status === -100){
+        this.$bvToast.toast(`请检查网络连接或刷新重试。`, {
+          title: `用户列表加载失败`,
+          toaster: 'b-toaster-top-center',
+          solid: true,
+          variant: 'danger'
         })
-        .catch((error) => {
-          console.log(error)
-        })
-
+      }
+    }
   },
   methods:{
     initTable: function (response) {
       const _this = this
       let userData = []
 
-      // 数据预处理
       response.users.forEach((element) => {
         let groups = ''
         element.groups.forEach((element) => {
@@ -73,13 +76,35 @@ export default {
       })
 
       let operateEvents = {
-        'click .ban': function (e, value, row, index) {
-          _this.axios.patch('/api/user/' + row.username, {status: 1}, {headers: {Authorization: "Bearer " + _this.token}})
-          _this.$router.go(0)
+        'click .ban': async function (e, value, row, index) {
+          try{
+            let response = await _this.axios.patch('/api/user/' + row.username, {status: 1}, {headers: {Authorization: "Bearer " + _this.token}})
+            _this.$router.go(0)
+          }catch (e) {
+            if(e.response.data.status === -100){
+              this.$bvToast.toast(`请检查网络连接或重试操作。`, {
+                title: `封禁用户失败`,
+                toaster: 'b-toaster-top-center',
+                solid: true,
+                variant: 'danger'
+              })
+            }
+          }
         },
-        'click .unban': function (e, value, row, index) {
-          _this.axios.patch('/api/user/' + row.username, {status: 0}, {headers: {Authorization: "Bearer " + _this.token}})
-          _this.$router.go(0)
+        'click .unban': async function (e, value, row, index) {
+          try{
+            let response = await _this.axios.patch('/api/user/' + row.username, {status: 0}, {headers: {Authorization: "Bearer " + _this.token}})
+            _this.$router.go(0)
+          }catch (e) {
+            if(e.response.data.status === -100){
+              this.$bvToast.toast(`请检查网络连接或重试操作。`, {
+                title: `解封用户失败`,
+                toaster: 'b-toaster-top-center',
+                solid: true,
+                variant: 'danger'
+              })
+            }
+          }
         },
       }
 
