@@ -73,7 +73,6 @@ export default {
       idSelections: [],
       pathSelections: [],
       typeSelections: [],
-      amount: 0,  //文件总数，从get中取得
       allFileData: [],  //所有文件data，amount超过1000时使用
       username: '',
       token: '',
@@ -102,21 +101,24 @@ export default {
     try{
       let response = await this.axios.get('/api/storage/file?offset=0&amount=1000&folder=' + this.folder, {headers: {Authorization: "Bearer " + this.token}})
       //console.log(response.data)
-      this.amount = response.data.data.amount
+      let amount = response.data.data.amount
 
-      if(this.amount <= 1000){
-        this.initTable(response.data.data)
+      if(amount < 1000){
+        this.initTable(response.data.data.files)
       }else{
         let offset = 1000
-        this.allFileData.push(response.data.data)
-        while(offset <= this.amount){
+        this.allFileData=this.allFileData.concat(response.data.data.files)
+        while(amount === 1000){
           let response = await this.axios.get('/api/storage/file?offset=' + offset + '&amount=1000&folder=' + this.folder, {headers: {Authorization: "Bearer " + this.token}})
-          this.allFileData.push(response.data.data)
+          this.allFileData=this.allFileData.concat(response.data.data.files)
           offset = offset + 1000
+          amount = response.data.data.amount
         }
+        //console.log(this.allFileData)
         this.initTable(this.allFileData)
       }
     }catch (e) {
+      //console.log(e)
       this.$bvToast.toast(`请检查网络连接或刷新重试。`, {
         title: `文件列表加载失败`,
         toaster: 'b-toaster-top-center',
@@ -185,7 +187,7 @@ export default {
         })
       }
 
-      data.files.forEach((element) => {
+      data.forEach((element) => {
         fileData.push({
           id: element.id,
           name: element.name,
