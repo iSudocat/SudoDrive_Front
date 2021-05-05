@@ -86,7 +86,7 @@ export default {
   computed: {
     getUsername: function () {
       if (this.$cookies.get('username') !== null) {
-        return '欢迎您，' + this.$cookies.get('username')
+        return '欢迎您，' + this.$cookies.get('nickname')
       } else {
         return ''
       }

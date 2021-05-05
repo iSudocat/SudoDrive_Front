@@ -1,5 +1,5 @@
 <template>
-  <div id="files">
+  <div id="files" v-if="showPage">
     <mdb-row class="justify-content-center">
       <mdb-col col="10">
         <div>
@@ -66,6 +66,7 @@ export default {
   },
   data() {
     return {
+      showPage: false,
       idSelections: [],
       pathSelections: [],
       amount: 0,  //文件总数，从get中取得
@@ -87,26 +88,38 @@ export default {
     this.folder = this.$route.query.folder
     if (this.username === null) {
       this.$router.push('/login')
+    }else{
+      this.showPage = true
     }
   },
   async mounted() {
-    const _this = this
-    let response = await this.axios.get('/api/storage/file?offset=0&amount=1000&folder=' + this.folder, {headers: {Authorization: "Bearer " + this.token}})
-    //console.log(response.data)
-    this.amount = response.data.data.amount
+    if(this.showPage === false) return
+    
+    try{
+      let response = await this.axios.get('/api/storage/file?offset=0&amount=1000&folder=' + this.folder, {headers: {Authorization: "Bearer " + this.token}})
+      //console.log(response.data)
+      this.amount = response.data.data.amount
 
-    if(this.amount <= 1000){
-      this.initTable(response.data.data)
-    }else{
-      let offset = 1000
-      this.allFileData.push(response.data.data)
-      while(offset <= this.amount){
-        let response = await this.axios.get('/api/storage/file?offset=' + offset + '&amount=1000&folder=' + this.folder, {headers: {Authorization: "Bearer " + this.token}})
+      if(this.amount <= 1000){
+        this.initTable(response.data.data)
+      }else{
+        let offset = 1000
         this.allFileData.push(response.data.data)
-        offset = offset + 1000
+        while(offset <= this.amount){
+          let response = await this.axios.get('/api/storage/file?offset=' + offset + '&amount=1000&folder=' + this.folder, {headers: {Authorization: "Bearer " + this.token}})
+          this.allFileData.push(response.data.data)
+          offset = offset + 1000
+        }
+        this.initTable(this.allFileData)
       }
+    }catch (e) {
+      this.$bvToast.toast(`请检查网络连接或刷新重试。`, {
+        title: `文件列表加载失败`,
+        toaster: 'b-toaster-top-center',
+        solid: true,
+        variant: 'danger'
+      })
     }
-
   },
   computed:{
     breadItems: function (){
@@ -169,7 +182,6 @@ export default {
       }
 
       data.files.forEach((element) => {
-
         fileData.push({
           id: element.id,
           name: element.name,
@@ -338,32 +350,51 @@ export default {
       link.click(); //强制触发a标签事件
     },
     downloadCosFile: async function (fileID) {
-      let response = await this.axios.get('/api/storage/file?download=true&id=' + fileID, {
-        headers: {Authorization: "Bearer " + this.$cookies.get('token')}
-      })
-      let auth = CosAuth(
-          response.data.data.token.credentials.tmpSecretId,
-          response.data.data.token.credentials.tmpSecretKey,
-          response.data.data.token.credentials.token,
-          response.data.data.token.startTime,
-          response.data.data.token.expiredTime,
-          "get",
-          {'response-content-disposition': 'attachment; filename=' + response.data.data.files[0].name},
-          {},
-          '/' + response.data.data.files[0].storageName
-      )
-      let link = 'https://' + response.data.data.tencentCos.bucket + '.cos.' + response.data.data.tencentCos.region + '.myqcloud.com' +
-          '/' + response.data.data.files[0].storageName +
-          '?response-content-disposition=attachment%3B%20filename%3D' + this.camSafeUrlEncode(response.data.data.files[0].name) +
-          "&" + auth
-      //console.log(link)
-      this.fileDownloadCreate(link)
+      try{
+        let response = await this.axios.get('/api/storage/file?download=true&id=' + fileID, {
+          headers: {Authorization: "Bearer " + this.$cookies.get('token')}
+        })
+        let auth = CosAuth(
+            response.data.data.token.credentials.tmpSecretId,
+            response.data.data.token.credentials.tmpSecretKey,
+            response.data.data.token.credentials.token,
+            response.data.data.token.startTime,
+            response.data.data.token.expiredTime,
+            "get",
+            {'response-content-disposition': 'attachment; filename=' + response.data.data.files[0].name},
+            {},
+            '/' + response.data.data.files[0].storageName
+        )
+        let link = 'https://' + response.data.data.tencentCos.bucket + '.cos.' + response.data.data.tencentCos.region + '.myqcloud.com' +
+            '/' + response.data.data.files[0].storageName +
+            '?response-content-disposition=attachment%3B%20filename%3D' + this.camSafeUrlEncode(response.data.data.files[0].name) +
+            "&" + auth
+        //console.log(link)
+        this.fileDownloadCreate(link)
+
+      }catch (e) {
+        this.$bvToast.toast(`请检查网络连接或重试操作。`, {
+          title: `文件下载失败`,
+          toaster: 'b-toaster-top-center',
+          solid: true,
+          variant: 'danger'
+        })
+      }
     },
     deleteFile: async function (filePath) {
-      let response = await this.axios.delete('/api/storage/file', {
-        data: {path: filePath},
-        headers: {Authorization: "Bearer " + this.$cookies.get('token')}
-      })
+      try{
+        let response = await this.axios.delete('/api/storage/file', {
+          data: {path: filePath},
+          headers: {Authorization: "Bearer " + this.$cookies.get('token')}
+        })
+      }catch (e) {
+        this.$bvToast.toast(`请检查网络连接或重试操作。`, {
+          title: `文件删除失败`,
+          toaster: 'b-toaster-top-center',
+          solid: true,
+          variant: 'danger'
+        })
+      }
     },
     batchDownload: function (){
       const _this = this
