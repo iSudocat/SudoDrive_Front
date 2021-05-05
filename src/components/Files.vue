@@ -109,6 +109,7 @@ export default {
         },
         'click .delete': function (e, value, row, index) {
           _this.deleteFile([row.path])
+          this.$router.go(0)
         },
       }
 

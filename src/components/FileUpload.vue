@@ -29,7 +29,7 @@
         </button>
       </div>
     </div>
-    <mdb-tbl responsive autoWidth>
+    <mdb-tbl responsive>
       <mdb-tbl-head>
         <tr>
           <th >文件名</th>
