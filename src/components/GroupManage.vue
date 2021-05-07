@@ -79,7 +79,7 @@ export default {
   async mounted() {
     if(this.username === 'admin')   // 管理员账户
     {
-      if(this.groupName === undefined){
+      if(this.groupName === undefined || this.groupName === ''){
         this.showGroupMember = false
         try{
           let response = await this.axios.get('/api/group', {headers: {Authorization: "Bearer " + this.token}})
@@ -169,9 +169,6 @@ export default {
           })
         }
       }
-
-
-
     }
   },
   methods:{
@@ -191,9 +188,21 @@ export default {
       })
 
       let operateEvents = {
-        'click .deleteGroup': function (e, value, row, index) {
-          _this.axios.delete('/api/group/' + row.groupName, {headers: {Authorization: "Bearer " + _this.token}})
-          _this.$router.go(0)
+        'click .deleteGroup': async function (e, value, row, index) {
+          try{
+            await _this.axios.delete('/api/group/' + row.groupName, {headers: {Authorization: "Bearer " + _this.token}})
+            await _this.$router.go(0)
+            await _this.$router.push('/groupManage')
+          }catch(error){
+            if(error.response.data.status === -116){
+              _this.$bvToast.toast(`请清空该群组下文件后再试。`, {
+                title: `删除群组失败`,
+                toaster: 'b-toaster-top-center',
+                solid: true,
+                variant: 'danger'
+              })
+            }
+          }
         },
       }
 
@@ -262,7 +271,9 @@ export default {
       let operateEvents = {
         'click .deleteMember': function (e, value, row, index) {
           _this.axios.delete('api/group/' + _this.groupName + '/member', {data:{username: row.username}, headers: {Authorization: "Bearer " + _this.token}})
-          _this.$router.go(0)
+            .then((response) => {
+              _this.$router.go(0)
+            })
         },
       }
 
@@ -333,7 +344,7 @@ export default {
       }
     },
     groupMemberOperateFormatter: function (value, row) {
-      if(row.username !== 'admin'){
+      if(row.username !== 'admin' && row.username !== this.username){
         return [
           '<a class="deleteMember" href="javascript:void(0)" title="删除用户">',
           '<i class="fas fa-user-times"></i>',
@@ -345,7 +356,7 @@ export default {
     },
     addGroup: async function (){
       try{
-        let response = await this.axios.post('/api/group', {groupname: this.newGroupName}, {headers: {Authorization: "Bearer " + this.token}})
+        await this.axios.post('/api/group', {groupname: this.newGroupName}, {headers: {Authorization: "Bearer " + this.token}})
         this.$router.go(0)
       }catch (e) {
         if(e.response.data.status === -100){
@@ -360,7 +371,7 @@ export default {
     },
     addMember: async function (){
       try{
-        let response = await this.axios.post('api/group/' + this.groupName + '/member', {username: this.newMemberName}, {headers: {Authorization: "Bearer " + this.token}})
+        await this.axios.post('api/group/' + this.groupName + '/member', {username: this.newMemberName}, {headers: {Authorization: "Bearer " + this.token}})
         this.$router.go(0)
       }catch (e) {
         if(e.response.data.status === -100){

@@ -9,6 +9,7 @@
             <mdb-btn style="margin-left: 5px" color="primary" size="md" v-on:click="batchDownload"><i class="fas fa-download" style="padding-right: 5px;"></i>批量下载</mdb-btn>
             <mdb-btn style="margin-left: 5px" color="primary" size="md" v-on:click="batchDelete"><i class="fas fa-trash-alt" style="padding-right: 5px;"></i>批量删除</mdb-btn>
           </mdb-btn-group>
+
           <b-sidebar id="sidebar-right" title="上传任务" right width="500px"
                      header-class="background-color: grey lighten-5">
             <div class="grey lighten-5" style="height: 100%;">
@@ -16,15 +17,19 @@
                 <file-upload></file-upload>
               </div>
             </div>
-
           </b-sidebar>
         </div>
       </mdb-col>
-      <mdb-col col="10">
+      <mdb-col md="10" lg="7">
         <b-breadcrumb style="margin-top: 15px; margin-bottom: -5px;" :items="breadItems"></b-breadcrumb>
       </mdb-col>
+      <mdb-col md="10" lg="3">
+        <div style="margin-top: 20px">
+          <mdb-input label="搜索" type="text" class="mt-0" v-model="searchContext" @input="search"></mdb-input>
+        </div>
+      </mdb-col>
     </mdb-row>
-    <mdb-row class="justify-content-md-center animated fadeIn">
+    <mdb-row class="justify-content-md-center animated fadeIn" style="margin-top: -20px">
       <mdb-col col="10">
         <table style="margin-top: 20px" id="table" data-pagination="true" data-show-footer="false">
         </table>
@@ -54,7 +59,7 @@
 /* eslint-disable */
 import $ from 'jquery'
 import CosAuth from '../js/cos-auth.js'
-import {mdbRow, mdbCol, mdbBtn, mdbBtnGroup} from 'mdbvue'
+import {mdbRow, mdbCol, mdbBtn, mdbBtnGroup, mdbFormInline, mdbInput, mdbIcon} from 'mdbvue'
 import FileUpload from "./FileUpload";
 
 export default {
@@ -64,7 +69,10 @@ export default {
     mdbRow,
     mdbCol,
     mdbBtn,
-    mdbBtnGroup
+    mdbBtnGroup,
+    mdbFormInline,
+    mdbInput,
+    mdbIcon
 
   },
   data() {
@@ -82,13 +90,16 @@ export default {
         id: 'info-modal',
         title: '新建文件夹',
         folderName: ''
-      }
+      },
+      searchContext: '',
+      nameContains: ''
     }
   },
   beforeMount() {
     this.username = this.$cookies.get('username')
     this.token = this.$cookies.get('token')
     this.folder = this.$route.query.folder
+    this.nameContains = this.$route.query.nameContains
     if (this.username === null) {
       this.$router.push('/login')
     }else{
@@ -97,35 +108,7 @@ export default {
   },
   async mounted() {
     if(this.showPage === false) return
-    
-    try{
-      let response = await this.axios.get('/api/storage/file?offset=0&amount=1000&folder=' + this.folder, {headers: {Authorization: "Bearer " + this.token}})
-      //console.log(response.data)
-      let amount = response.data.data.amount
-
-      if(amount < 1000){
-        this.initTable(response.data.data.files)
-      }else{
-        let offset = 1000
-        this.allFileData=this.allFileData.concat(response.data.data.files)
-        while(amount === 1000){
-          let response = await this.axios.get('/api/storage/file?offset=' + offset + '&amount=1000&folder=' + this.folder, {headers: {Authorization: "Bearer " + this.token}})
-          this.allFileData=this.allFileData.concat(response.data.data.files)
-          offset = offset + 1000
-          amount = response.data.data.amount
-        }
-        //console.log(this.allFileData)
-        this.initTable(this.allFileData)
-      }
-    }catch (e) {
-      //console.log(e)
-      this.$bvToast.toast(`请检查网络连接或刷新重试。`, {
-        title: `文件列表加载失败`,
-        toaster: 'b-toaster-top-center',
-        solid: true,
-        variant: 'danger'
-      })
-    }
+    await this.getFileList()
   },
   computed:{
     breadItems: function (){
@@ -139,7 +122,7 @@ export default {
         href: '/files?folder=' + userFolder
       })
 
-      if(this.folder.startsWith(userFolder)){
+      if(this.folder?.startsWith(userFolder)){
         let t = this.folder.substring(userFolder.length).split('/')
         //console.log(t)
         t.forEach((element) => {
@@ -154,7 +137,7 @@ export default {
         let t = this.folder.substring(groupFolder.length).split('/')
         //console.log(t)
         items.push({
-          text: '共享',
+          text: '共享组',
           href: '/files?folder=' + groupFolder
         })
         t.forEach((element) => {
@@ -174,9 +157,10 @@ export default {
     initTable: function (data) {
       const _this = this
       let fileData = []
+      const nameContains = this.$route.query.nameContains
 
-      // 若为用户根目录则先添加共享文件夹根目录
-      if(this.folder === '/users/' + this.username){
+      // 若为用户根目录且非搜索模式则先添加共享文件夹根目录
+      if (this.folder === '/users/' + this.username && !(nameContains !== undefined && nameContains !== '')) {
         fileData.push({
           id: 666,
           name: '共享组',
@@ -203,8 +187,7 @@ export default {
           _this.downloadCosFile(row.id)
         },
         'click .delete': function (e, value, row, index) {
-          _this.deleteFile([row.path])
-          _this.$router.go(0)
+          _this.deleteSingleFile([row.path])
         },
       }
 
@@ -272,11 +255,13 @@ export default {
           return row.id
         })
       }
+
       function getPathSelections() {
         return $.map($table.bootstrapTable('getSelections'), function (row) {
           return row.path
         })
       }
+
       function getTypeSelections() {
         return $.map($table.bootstrapTable('getSelections'), function (row) {
           return row.type
@@ -344,8 +329,8 @@ export default {
           '<i class="fas fa-trash-alt"></i>',
           '</a>'
         ].join('')
-      }else{
-        return  []
+      } else {
+        return []
       }
 
     },
@@ -366,7 +351,7 @@ export default {
       link.click(); //强制触发a标签事件
     },
     downloadCosFile: async function (fileID) {
-      try{
+      try {
         let response = await this.axios.get('/api/storage/file?download=true&id=' + fileID, {
           headers: {Authorization: "Bearer " + this.$cookies.get('token')}
         })
@@ -388,7 +373,7 @@ export default {
         //console.log(link)
         this.fileDownloadCreate(link)
 
-      }catch (e) {
+      } catch (e) {
         this.$bvToast.toast(`请检查网络连接或重试操作。`, {
           title: `文件下载失败`,
           toaster: 'b-toaster-top-center',
@@ -397,13 +382,14 @@ export default {
         })
       }
     },
-    deleteFile: async function (filePath) {
-      try{
-        let response = await this.axios.delete('/api/storage/file', {
+    deleteSingleFile: async function (filePath) {
+      try {
+        await this.axios.delete('/api/storage/file', {
           data: {path: filePath},
           headers: {Authorization: "Bearer " + this.$cookies.get('token')}
         })
-      }catch (e) {
+        await this.$router.go(0)
+      } catch (e) {
         this.$bvToast.toast(`请检查网络连接或重试操作。`, {
           title: `文件删除失败`,
           toaster: 'b-toaster-top-center',
@@ -412,23 +398,28 @@ export default {
         })
       }
     },
-    batchDownload: function (){
+    batchDownload: function () {
       const _this = this
       let i = 0
-      this.idSelections.forEach((element,index) => {
-        if(this.typeSelections[index] !== '文件夹' && this.typeSelections[index] !== '共享文件夹'){
-          setTimeout(function() {
+      this.idSelections.forEach((element, index) => {
+        if (this.typeSelections[index] !== '文件夹' && this.typeSelections[index] !== '共享文件夹') {
+          setTimeout(function () {
             _this.downloadCosFile(element)
           }, i * 500)  // 不延时下载可能被吞
           i++
         }
       })
     },
-    batchDelete: function (){
-      this.deleteFile(this.pathSelections)
-      this.$router.go(0)
+    batchDelete: async function () {
+      if (this.typeSelections[index] !== '共享文件夹') {
+        await this.axios.delete('/api/storage/file', {
+          data: {path: this.pathSelections},
+          headers: {Authorization: "Bearer " + this.$cookies.get('token')}
+        })
+        this.$router.go(0)
+      }
     },
-    addFolder: function (button){
+    addFolder: function (button) {
       this.$root.$emit('bv::show::modal', this.newFolderModal.id, button)
     },
     handleCancel() {
@@ -436,15 +427,20 @@ export default {
         this.$bvModal.hide(this.newFolderModal.id)
       })
     },
-    async handleOk() {
+    handleOk: async function () {
       const _this = this
-      try{
+      try {
         let response = await this.axios.post('/api/storage/file',
-            {type: 'text/directory', path: _this.folder + "/" + _this.newFolderModal.folderName, size:0, md5: '00000000000000000000000000000000' },
+            {
+              type: 'text/directory',
+              path: _this.folder + "/" + _this.newFolderModal.folderName,
+              size: 0,
+              md5: '00000000000000000000000000000000'
+            },
             {headers: {Authorization: "Bearer " + _this.token}})
         _this.$router.go(0)
-      }catch (e) {
-        if(e.response.data.status === -100){
+      } catch (e) {
+        if (e.response.data.status === -100) {
           this.$bvToast.toast(`请检查文件夹名是否合格或网络连接是否正常。`, {
             title: `新建文件夹失败`,
             toaster: 'b-toaster-top-center',
@@ -454,7 +450,51 @@ export default {
         }
       }
     },
+    search: async function () {
+      const $table = $('#table')
+      $table.bootstrapTable('destroy')
+      await this.$router.push({name: 'files', query: {folder: this.folder, nameContains: this.searchContext}})
+      await this.getFileList()
+    },
+    getFileList: async function () {
+      try {
+        let response
+        const folder = this.$route.query.folder
+        const nameContains = this.$route.query.nameContains
+        if (nameContains !== undefined && nameContains !== '') {  // 搜索模式，不传folder
+          response = await this.axios.get('/api/storage/file?offset=0&amount=1000' + '&nameContains=' + nameContains,
+              {headers: {Authorization: "Bearer " + this.token}})
+        } else {
+          response = await this.axios.get('/api/storage/file?offset=0&amount=1000&folder=' + folder, {headers: {Authorization: "Bearer " + this.token}})
+        }
 
+        let amount = response.data.data.amount
+
+        if (amount < 1000) {
+          this.initTable(response.data.data.files)
+        } else {
+          let offset = 1000
+          this.allFileData = this.allFileData.concat(response.data.data.files)
+          while (amount === 1000) {
+            let response = await this.axios.get('/api/storage/file?offset=' + offset + '&amount=1000&folder=' + folder, {headers: {Authorization: "Bearer " + this.token}})
+            this.allFileData = this.allFileData.concat(response.data.data.files)
+            offset = offset + 1000
+            amount = response.data.data.amount
+          }
+          //console.log(this.allFileData)
+          this.initTable(this.allFileData)
+        }
+      } catch (e) {
+        //console.log(e)
+        this.$bvToast.toast(`请检查网络连接或刷新重试。`, {
+          title: `文件列表加载失败`,
+          toaster: 'b-toaster-top-center',
+          solid: true,
+          variant: 'danger'
+        })
+      }
+
+    }
   }
 }
 </script>

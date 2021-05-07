@@ -6,7 +6,7 @@
 
 <script>
 export default {
-  name: "AdminTemplate",
+  name: "SudoDrive",
   components: {
   }
 };
