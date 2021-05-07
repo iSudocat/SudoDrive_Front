@@ -13,7 +13,7 @@
     "bootstrap": "^4.6.0",
     "bootstrap-table": "^1.18.3",
     "bootstrap-vue": "^2.21.2",
-    "core-js": "^3.4.4",
+    "core-js": "^3.12.0",
     "cos-js-sdk-v5": "^1.2.9",
     "jquery": "^3.6.0",
     "mdbvue": "6.5.0",
@@ -27,13 +27,13 @@
     "vue2-google-maps": "^0.10.7"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "^4.1.2",
-    "@vue/cli-plugin-eslint": "^4.1.2",
-    "@vue/cli-service": "^4.1.2",
-    "babel-eslint": "^10.0.3",
+    "@vue/cli-plugin-babel": "^4.5.12",
+    "@vue/cli-plugin-eslint": "^4.5.12",
+    "@vue/cli-service": "^4.5.12",
+    "babel-eslint": "^10.1.0",
     "eslint": "^5.16.0",
-    "eslint-plugin-vue": "^6.1.2",
-    "vue-cli-plugin-mdb": "^2.0.4",
+    "eslint-plugin-vue": "^6.2.2",
+    "vue-cli-plugin-mdb": "^2.1.0",
     "vue-template-compiler": "^2.6.12"
   },
   "eslintConfig": {
