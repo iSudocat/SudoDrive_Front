@@ -275,7 +275,7 @@ export default {
             _this.pathSelections = getPathSelections()
             _this.typeSelections = getTypeSelections()
             console.log(_this.idSelections)
-            //console.log(_this.pathSelections)
+            console.log(_this.pathSelections)
           })
     },
     convertFileSize: function (value) {
@@ -411,13 +411,16 @@ export default {
       })
     },
     batchDelete: async function () {
-      if (this.typeSelections[index] !== '共享文件夹') {
-        await this.axios.delete('/api/storage/file', {
-          data: {path: this.pathSelections},
-          headers: {Authorization: "Bearer " + this.$cookies.get('token')}
-        })
-        this.$router.go(0)
+      const _this = this
+      for(let i=0; i<this.pathSelections.length; i++){
+        if (_this.typeSelections[i] !== '共享文件夹') {
+          await _this.axios.delete('/api/storage/file', {
+            data: {path: [_this.pathSelections[i]]},
+            headers: {Authorization: "Bearer " + _this.$cookies.get('token')}
+          })
+        }
       }
+      await this.$router.go(0)
     },
     addFolder: function (button) {
       this.$root.$emit('bv::show::modal', this.newFolderModal.id, button)
