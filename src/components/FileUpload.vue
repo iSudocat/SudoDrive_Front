@@ -127,7 +127,7 @@ export default {
           // const uploadModel = this.getUploadModel(file)
           uploadAxios(uploadModel, that.$cookies.get('token')).then(res => {
             // console.log(uploadModel)
-            console.log(res)
+            // console.log(res)
               if (res.status===0) {
                 throw '文件已存在'
               }
