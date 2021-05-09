@@ -39,7 +39,7 @@
             </mdb-card-body>
 
             <mdb-card-body v-if="showRegister" class="animated fadeIn" >
-              <form @submit="userRegister">
+              <form>
                 <p class="h2 text-center mb-4">注册</p>
                 <div class="grey-text">
                   <mdb-row class="justify-content-center">
@@ -61,7 +61,7 @@
                 <div class="text-center">
                   <mdb-col>
                     <p>
-                      <mdb-btn color="primary" type="submit">注册</mdb-btn>
+                      <mdb-btn color="primary" @click="userRegister">注册</mdb-btn>
                     </p>
                   </mdb-col>
                 </div>
@@ -135,7 +135,7 @@ export default {
       evt.preventDefault()
       try {
         let response = await this.axios.post('/api/login', this.loginForm)
-        console.log(response)
+        //console.log(response)
         if (response.data.status === 0) {
           if (response.data.data.user.status === 1) {
             this.loginError = true
@@ -148,7 +148,7 @@ export default {
           }
         }
       } catch (error) {
-        console.log(error.response)
+        //console.log(error.response)
         if (error.response.data.status === -2 || error.response.data.status === -100) {
           this.loginError = true
           this.loginErrorTips = '用户名或密码错误！'
@@ -178,13 +178,21 @@ export default {
             solid: true,
             variant: 'success'
           })
-          this.showRegister = false
+          //this.showRegister = false
 
         } catch (error) {
-          console.log(error.response)
+          //console.log(error.response)
           if (error.response.data.status === -100) {
-            this.registerError = true
-            this.registerErrorTips = '注册信息不合规范，请检查后再试！'
+            if (error.response.data.data.errors.Username !== undefined){
+              this.registerError = true
+              this.registerErrorTips = '用户名不合规，请检查后再试！'
+            }else if(error.response.data.data.errors.Password !== undefined){
+              this.registerError = true
+              this.registerErrorTips = '密码不合规，请检查后再试！'
+            }else if(error.response.data.data.errors.Nickname !== undefined){
+              this.registerError = true
+              this.registerErrorTips = '昵称不合规，请检查后再试！'
+            }
           } else if (error.response.data.status === -101) {
             this.registerError = true
             this.registerErrorTips = '用户名已存在！'

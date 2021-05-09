@@ -42,7 +42,7 @@ export default {
   async mounted() {
     try{
       let response = await this.axios.get('/api/user', {headers: {Authorization: "Bearer " + this.token}})
-      console.log(response.data)
+      //console.log(response.data)
       this.amount = response.data.data.amount
       this.initTable(response.data.data)
     }catch (e) {

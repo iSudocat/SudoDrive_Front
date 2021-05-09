@@ -83,7 +83,7 @@ export default {
         this.showGroupMember = false
         try{
           let response = await this.axios.get('/api/group', {headers: {Authorization: "Bearer " + this.token}})
-          console.log(response.data)
+          //console.log(response.data)
           this.initGroupTable(response.data.data)
         }catch (e) {
           this.$bvToast.toast(`请检查网络连接或刷新重试。`, {
@@ -96,7 +96,7 @@ export default {
       }else{
         try{
           let response = await this.axios.get('/api/group', {headers: {Authorization: "Bearer " + this.token}})
-          console.log(response.data)
+          //console.log(response.data)
 
           this.initGroupTable(response.data.data)
         }catch (e) {
@@ -111,7 +111,7 @@ export default {
         try{
 
           let response1 = await this.axios.get('/api/group/' + this.groupName + '/member', {headers: {Authorization: "Bearer " + this.token}})
-          console.log(response1.data)
+          //console.log(response1.data)
 
           this.initGroupMemberTable(response1.data.data)
           this.showGroupMember = true
@@ -131,7 +131,7 @@ export default {
         this.showGroupMember = false
         try{
           let response = await this.axios.get('/api/user/' + this.username, {headers: {Authorization: "Bearer " + this.token}})
-          console.log(response.data)
+          //console.log(response.data)
           this.initGroupTable(response.data.data)
         }catch (e) {
           this.$bvToast.toast(`请检查网络连接或刷新重试。`, {
@@ -144,7 +144,7 @@ export default {
       }else{
         try{
           let response = await this.axios.get('/api/user/' + this.username, {headers: {Authorization: "Bearer " + this.token}})
-          console.log(response.data)
+          //console.log(response.data)
           this.initGroupTable(response.data.data)
         }catch (e) {
           this.$bvToast.toast(`请检查网络连接或刷新重试。`, {
@@ -157,7 +157,7 @@ export default {
 
         try{
           let response1 = await this.axios.get('/api/group/' + this.groupName + '/member', {headers: {Authorization: "Bearer " + this.token}})
-          console.log(response1.data)
+          //console.log(response1.data)
           this.initGroupMemberTable(response1.data.data)
           this.showGroupMember = true
         }catch (e) {

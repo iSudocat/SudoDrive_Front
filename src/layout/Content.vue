@@ -105,7 +105,7 @@ export default {
   },
   methods: {
     logoutClick: function () {
-      console.log('注销')
+      //console.log('注销')
       this.$cookies.remove('username')
       this.$cookies.remove('token')
       this.$router.push('/login')

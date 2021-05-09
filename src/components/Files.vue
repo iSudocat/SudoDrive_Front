@@ -274,8 +274,8 @@ export default {
             _this.idSelections = getIdSelections()
             _this.pathSelections = getPathSelections()
             _this.typeSelections = getTypeSelections()
-            console.log(_this.idSelections)
-            console.log(_this.pathSelections)
+            //console.log(_this.idSelections)
+            //console.log(_this.pathSelections)
           })
     },
     convertFileSize: function (value) {
