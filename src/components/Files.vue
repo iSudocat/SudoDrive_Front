@@ -222,7 +222,7 @@ export default {
             title: '类型',
             sortable: true,
             align: 'left',
-            visible: true
+            visible: false
           },
           {
             field: 'size',
