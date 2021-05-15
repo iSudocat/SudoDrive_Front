@@ -178,7 +178,8 @@ export default {
             solid: true,
             variant: 'success'
           })
-          //this.showRegister = false
+          this.showRegister = false
+          this.registerError = false
 
         } catch (error) {
           //console.log(error.response)

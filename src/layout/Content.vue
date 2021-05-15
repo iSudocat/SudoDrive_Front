@@ -1,6 +1,5 @@
 <template>
   <div>
-    <!--Navbar-->
     <mdb-navbar class="flexible-navbar white" light position="top" scrolling>
       <mdb-navbar-brand href="" target="_blank"
       >SudoDrive
@@ -22,25 +21,31 @@
           <mdb-nav-item style="padding-top: 4px;">{{ getUsername }}</mdb-nav-item>
           <mdb-nav-item>
             <mdb-btn outline="blue-grey" size="sm" class="my-0" type="submit" @click='logoutClick'>
-              <mdb-icon icon="sign-out-alt"/>注销
+              <mdb-icon icon="sign-out-alt"/>
+              注销
             </mdb-btn>
           </mdb-nav-item>
         </mdb-navbar-nav>
       </mdb-navbar-toggler>
     </mdb-navbar>
-    <!--/.Navbar-->
 
+    <div class="main">
       <div class="mt-5 p-5">
         <router-view></router-view>
       </div>
-      <ftr color="primary-color-dark" class="text-center font-small darken-2">
-        <p class="footer-copyright mb-0 py-3 text-center">
-          &copy; {{ new Date().getFullYear() }} Copyright:
-          <a href="https://github.com/iSudocat/SudoDrive"> SudoDrive </a>
-          <a href="https://github.com/iSudocat/SudoDrive_Front"> SudoDrive-FrontEnd </a>
-        </p>
-      </ftr>
+    </div>
+
+    <div class="ft">
+    <ftr color="primary-color-dark" class="text-center font-small darken-2">
+      <p class="footer-copyright mb-0 py-3 text-center">
+        &copy; {{ new Date().getFullYear() }} Copyright:
+        <a href="https://github.com/iSudocat/SudoDrive"> SudoDrive </a>
+        <a href="https://github.com/iSudocat/SudoDrive_Front"> SudoDrive-FrontEnd </a>
+      </p>
+    </ftr>
+    </div>
   </div>
+
 </template>
 
 <script>
@@ -99,7 +104,7 @@ export default {
         return '/login'
       }
     },
-    showUserManage: function (){
+    showUserManage: function () {
       return this.$cookies.get('username') === 'admin'
     }
   },
@@ -116,65 +121,20 @@ export default {
 
 <style>
 
-.navbar-light .navbar-brand {
-  margin-left: 15px;
-  color: #2196f3 !important;
-  font-weight: bolder;
-}
 </style>
 
 <style scoped>
+
 .main {
-
-  height: 100%;
+  min-height: calc(100vh - 122px);
 }
 
-.flexible-content {
-  transition: padding-left 0.3s;
-  padding-left: 270px;
-}
-
-.flexible-navbar {
-  transition: padding-left 0.5s;
-  /*padding-left: 270px;*/
-}
-
-.sidebar-fixed {
-  left: 0;
-  top: 0;
-  height: 100vh;
-  width: 270px;
-  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
-  z-index: 1050;
-  background-color: #fff;
-  padding: 1.5rem;
-  padding-top: 0;
-}
-
-.sidebar-fixed .logo-wrapper img {
-  width: 100%;
-  padding: 2.5rem;
-}
-
-.sidebar-fixed .list-group-item {
-  display: block !important;
-  transition: background-color 0.3s;
-}
-
-.sidebar-fixed .list-group .active {
-  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
-  border-radius: 5px;
+.ft {
+  line-height: 18px;
+  height: 50px;
 }
 
 @media (max-width: 1199.98px) {
-  .sidebar-fixed {
-    display: none;
-  }
-
-  .flexible-content {
-    padding-left: 0;
-  }
-
   .flexible-navbar {
     padding-left: 10px;
   }

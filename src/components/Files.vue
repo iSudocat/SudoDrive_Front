@@ -197,7 +197,7 @@ export default {
       $table.bootstrapTable({
         locale: 'zh-CN',
         sortName: "type",
-        sortOrder: "",
+        sortOrder: "asc",
         paginationParts: ['pageInfo', 'pageList'],
         paginationSuccessivelySize: 5,
         paginationPagesBySide: 2,
@@ -222,7 +222,7 @@ export default {
             title: '类型',
             sortable: true,
             align: 'left',
-            visible: false
+            visible: true
           },
           {
             field: 'size',
@@ -320,7 +320,7 @@ export default {
       }
     },
     operateFormatter: function (value, row, index) {
-      if (row.type !== '共享文件夹' && this.folder !== '/groups') {
+      if (row.type !== '共享文件夹' && this.folder !== '/groups' && row.type !== '文件夹') {
         return [
           '<a class="download" href="javascript:void(0)" title="下载">',
           '<i class="fas fa-download"></i>',
@@ -329,7 +329,14 @@ export default {
           '<i class="fas fa-trash-alt"></i>',
           '</a>'
         ].join('')
-      } else {
+      }else if(row.type === '文件夹'){
+        return [
+          '<a class="delete" href="javascript:void(0)" title="删除">',
+          '<i class="fas fa-trash-alt"></i>',
+          '</a>'
+        ].join('')
+      }
+      else {
         return []
       }
 
