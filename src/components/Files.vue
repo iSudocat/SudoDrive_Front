@@ -29,9 +29,9 @@
         </div>
       </mdb-col>
     </mdb-row>
-    <mdb-row class="justify-content-md-center animated fadeIn" style="margin-top: -20px">
+    <mdb-row class="justify-content-md-center animated fadeIn">
       <mdb-col col="10">
-        <table style="margin-top: 20px" id="table" data-pagination="true" data-show-footer="false">
+        <table id="table" data-pagination="true" data-show-footer="false">
         </table>
       </mdb-col>
     </mdb-row>
