@@ -137,10 +137,30 @@ export default {
               if (!(res.data.status===100||res.data.status===101)) {
                 throw '.NET请求错误'
               }
+
+            if (res.data.status===101){ //秒传
+              let task = {
+                id: that.tasks.length,
+                file: {
+                  name: uploadFile.name,
+                  progress: 0,
+                  status: 'running', // running pause stop success
+                  variant: null
+                },
+                taskId: null,
+                cos: null
+              }
+              that.tasks.unshift(task)
+              task.file.progress = 100
+              task.file.variant = 'success'
+              task.file.status = 'success'
+              return
+            }
+
               // 新建cos
-              var cos = that.getCosByRes(res)
+              let cos = that.getCosByRes(res)
               // 新建Task表格里的对象
-              var task = {
+              let task = {
                 id: that.tasks.length,
                 file: {
                   name: uploadFile.name,
